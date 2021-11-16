@@ -35,7 +35,6 @@ public class AuthenticationController {
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest loginRequest) {
         JwtResponse user = authenticationService.loginUser(loginRequest);
         return ResponseEntity.ok(user);
-
     }
 
 }

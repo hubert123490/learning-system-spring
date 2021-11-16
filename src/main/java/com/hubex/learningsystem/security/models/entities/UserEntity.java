@@ -1,5 +1,6 @@
 package com.hubex.learningsystem.security.models.entities;
 
+import com.hubex.learningsystem.app.models.entities.PersonEntity;
 import com.hubex.learningsystem.security.models.enums.Roles;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,12 +32,12 @@ public class UserEntity implements Serializable {
     private Long id;
 
     @NotBlank
-    @Size(max = 50)
+    @Size(min = 6, max = 50)
     @Email
     private String email;
 
     @NotBlank
-    @Size(max = 120)
+    @Size(min = 6, max = 120)
     private String password;
 
     @ManyToMany(cascade = {CascadeType.PERSIST}, fetch = FetchType.EAGER)
@@ -44,6 +45,9 @@ public class UserEntity implements Serializable {
             joinColumns = @JoinColumn(name = "users_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id"))
     private Set<RoleEntity> roles = new HashSet<>();
+
+    @OneToOne(mappedBy = "user")
+    private PersonEntity person;
 
     public UserEntity ( String email, String password) {
         this.email = email;
