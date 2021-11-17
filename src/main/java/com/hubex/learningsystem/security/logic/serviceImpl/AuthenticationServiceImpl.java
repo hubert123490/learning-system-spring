@@ -52,7 +52,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public MessageResponse registerUser(SignupRequest newUser) {
         if (userRepository.existsByEmail(newUser.getEmail())) {
-            return new MessageResponse("Error: Username is already taken!", "ERROR");
+            return new MessageResponse("Error: Nazwa użytkownika jest już zajęta!", "ERROR");
         }
 
         UserEntity user = new UserEntity(newUser.getEmail(),
@@ -65,19 +65,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (stringRoles == null) {
             RoleEntity studentRole = roleRepository.findByName(Roles.ROLE_STUDENT)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    .orElseThrow(() -> new RuntimeException("Error: Nie znaleziono roli systemu."));
             roles.add(studentRole);
         } else {
             stringRoles.forEach(role -> {
                 switch (role) {
                     case "teacher":
                         RoleEntity teacherRole = roleRepository.findByName(Roles.ROLE_TEACHER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                                .orElseThrow(() -> new RuntimeException("Error: Nie znaleziono roli systemu."));
                         roles.add(teacherRole);
                         break;
                     default:
                         RoleEntity studentRole = roleRepository.findByName(Roles.ROLE_STUDENT)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                                .orElseThrow(() -> new RuntimeException("Error: Nie znaleziono roli systemu."));
                         roles.add(studentRole);
                 }
             });
@@ -88,9 +88,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             userRepository.save(user);
             personRepository.save(person);
         }catch (Exception e) {
-            return new MessageResponse("Registration failed" , "ERROR");
+            return new MessageResponse("Rejestracja nie powiodła się" , "ERROR");
         }
-        return new MessageResponse("User registered successfully", "SUCCESS");
+        return new MessageResponse("Rejestracja powiodła się", "SUCCESS");
     }
 
     @Override

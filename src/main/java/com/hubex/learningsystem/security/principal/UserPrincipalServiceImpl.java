@@ -20,7 +20,7 @@ public class UserPrincipalServiceImpl implements UserDetailsService {
     @Transactional
     public UserPrincipal loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("Nie znaleziono użytkownika z podanym emailem: " + email));
 
         return UserPrincipal.build(user);
     }
