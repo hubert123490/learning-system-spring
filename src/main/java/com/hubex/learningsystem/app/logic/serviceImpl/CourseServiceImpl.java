@@ -41,7 +41,7 @@ public class CourseServiceImpl implements CourseService {
         UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
 
         if (loggedUser == null) {
-            throw new RuntimeException("User not logged in");
+            throw new RuntimeException("Zaloguj się aby kontynuować");
         } else {
             CourseEntity course = modelMapper.map(courseRequest, CourseEntity.class);
             course.setUsers(new HashSet<>(Collections.singletonList(loggedUser)));
@@ -53,7 +53,7 @@ public class CourseServiceImpl implements CourseService {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return new CreateCourseResponse("Course created successfully", "SUCCESS");
+            return new CreateCourseResponse("Z powodzeniem utworzono kurs", "SUCCESS");
         }
     }
 
