@@ -25,20 +25,20 @@ public class DBFileServiceImpl implements DBFileService {
 
         try {
             if(fileName.contains("..")) {
-                throw new FileStorageException("Sorry! Filename contains invalid path sequence " + fileName);
+                throw new FileStorageException("Przepraszamy! Nazwa pliku zawiera nieprawidłową sekwencję znaków " + fileName);
             }
 
             DBFileEntity dbFile = new DBFileEntity(fileName, file.getContentType(), file.getBytes());
 
             return dbFileRepository.save(dbFile);
         } catch (IOException ex) {
-            throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
+            throw new FileStorageException("Nie można zapisać pliku " + fileName + ". Proszę spróbować ponownie!", ex);
         }
     }
 
     @Override
     public DBFileEntity getFile(String fileId) {
         return dbFileRepository.findById(fileId)
-                .orElseThrow(() -> new FileNotFoundException("File not found with id " + fileId));
+                .orElseThrow(() -> new FileNotFoundException("Nie znaleziono pliku o id: " + fileId));
     }
 }
