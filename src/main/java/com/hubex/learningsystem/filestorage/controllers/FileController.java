@@ -29,8 +29,8 @@ public class FileController {
     }
 
     @PostMapping("/upload-file")
-    public UploadFileResponse uploadFile(@RequestParam("file")MultipartFile file) {
-        DBFileEntity dbFile = dbFileService.storeFile(file);
+    public UploadFileResponse uploadFile(@RequestParam("file")MultipartFile file, @RequestParam("lessonId") String lessonId) {
+        DBFileEntity dbFile = dbFileService.storeFile(file, lessonId);
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
@@ -41,12 +41,12 @@ public class FileController {
                 file.getContentType(), file.getSize());
     }
 
-    @PostMapping("upload-multiple-files")
-    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
-        return Arrays.stream(files)
-                .map(this::uploadFile)
-                .collect(Collectors.toList());
-    }
+//    @PostMapping("upload-multiple-files")
+//    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
+//        return Arrays.stream(files)
+//                .map(this::uploadFile)
+//                .collect(Collectors.toList());
+//    }
 
     @GetMapping("download-file/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileId) {

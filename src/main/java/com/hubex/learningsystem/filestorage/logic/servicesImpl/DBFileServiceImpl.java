@@ -1,5 +1,7 @@
 package com.hubex.learningsystem.filestorage.logic.servicesImpl;
 
+import com.hubex.learningsystem.app.models.entities.LessonEntity;
+import com.hubex.learningsystem.app.models.repositories.LessonRepository;
 import com.hubex.learningsystem.filestorage.exceptions.FileNotFoundException;
 import com.hubex.learningsystem.filestorage.exceptions.FileStorageException;
 import com.hubex.learningsystem.filestorage.logic.services.DBFileService;
@@ -14,13 +16,15 @@ import java.io.IOException;
 @Service
 public class DBFileServiceImpl implements DBFileService {
     private final DBFileRepository dbFileRepository;
+    private final LessonRepository lessonRepository;
 
-    public DBFileServiceImpl(DBFileRepository dbFileRepository) {
+    public DBFileServiceImpl(DBFileRepository dbFileRepository, LessonRepository lessonRepository) {
         this.dbFileRepository = dbFileRepository;
+        this.lessonRepository = lessonRepository;
     }
 
     @Override
-    public DBFileEntity storeFile(MultipartFile file) {
+    public DBFileEntity storeFile(MultipartFile file, String lessonId) {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
         try {
@@ -29,6 +33,11 @@ public class DBFileServiceImpl implements DBFileService {
             }
 
             DBFileEntity dbFile = new DBFileEntity(fileName, file.getContentType(), file.getBytes());
+            LessonEntity lesson = lessonRepository.findById(Long.valueOf(lessonId)).orElse(null);
+            if(lesson == null) {
+                throw new NullPointerException("Nie znaleziono lekcji o podanym id");
+            }
+            dbFile.setLesson(lesson);
 
             return dbFileRepository.save(dbFile);
         } catch (IOException ex) {
