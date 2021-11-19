@@ -22,13 +22,6 @@ public class PersonEntity implements Serializable {
     @Setter(AccessLevel.NONE)
     private static final long serialVersionUID = 5265361983976759302L;
 
-    PersonEntity(String firstName, String lastName, String title, UserEntity user){
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.title = Titles.valueOf(title);
-        this.user = user;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

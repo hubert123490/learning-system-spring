@@ -9,6 +9,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -34,7 +35,12 @@ public class CourseEntity implements Serializable {
 
     private String password = "";
 
-    @ManyToMany(mappedBy = "courses")
-    Set<UserEntity> users;
+    @ManyToMany(mappedBy = "studentCourses")
+    Set<UserEntity> students = new HashSet<>();
 
+    @ManyToMany(mappedBy = "teacherCourses")
+    Set<UserEntity> teachers = new HashSet<>();
+
+    @OneToMany(mappedBy = "course")
+    Set<LessonEntity> lessons = new HashSet<>();
 }

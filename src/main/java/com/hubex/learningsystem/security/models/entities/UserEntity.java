@@ -52,10 +52,17 @@ public class UserEntity implements Serializable {
 
     @ManyToMany
     @JoinTable(
-            name = "users_courses",
+            name = "students_courses",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "course_id"))
-    Set<CourseEntity> courses;
+    Set<CourseEntity> studentCourses = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "teachers_courses",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "course_id"))
+    Set<CourseEntity> teacherCourses = new HashSet<>();
 
 
     public UserEntity ( String email, String password) {
