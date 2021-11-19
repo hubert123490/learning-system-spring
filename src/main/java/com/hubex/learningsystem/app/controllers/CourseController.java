@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.controllers;
 
 import com.hubex.learningsystem.app.logic.serviceImpl.CourseServiceImpl;
+import com.hubex.learningsystem.app.models.dtos.CourseDetails;
 import com.hubex.learningsystem.app.models.requests.CreateCourseRequest;
 import com.hubex.learningsystem.app.models.responses.CreateCourseResponse;
 import com.hubex.learningsystem.app.models.responses.GetAllCoursesResponse;
@@ -40,6 +41,32 @@ public class CourseController {
         if(response.getCourses().isEmpty()){
             return ResponseEntity.badRequest().body(response);
         } else if (!response.getCourses().isEmpty()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/my-courses")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
+    @ResponseBody
+    public ResponseEntity<?> getMyCourses() {
+        GetAllCoursesResponse response = courseService.getTeacherCourses();
+        if(response.getCourses().isEmpty()){
+            return ResponseEntity.badRequest().body(response);
+        } else if (!response.getCourses().isEmpty()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{courseId}")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
+    @ResponseBody
+    public ResponseEntity<?> getCourseDetails(@PathVariable String courseId) {
+        CourseDetails response = courseService.getCourseDetails(courseId);
+        if(response.getLessons().isEmpty()){
+            return ResponseEntity.badRequest().body(response);
+        } else if (!response.getLessons().isEmpty()) {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.noContent().build();
