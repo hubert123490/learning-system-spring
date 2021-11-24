@@ -50,18 +50,10 @@ public class UserEntity implements Serializable {
     @OneToOne(mappedBy = "user")
     private PersonEntity person;
 
-    @ManyToMany
-    @JoinTable(
-            name = "students_courses",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "course_id"))
+    @ManyToMany(mappedBy = "students")
     Set<CourseEntity> studentCourses = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "teachers_courses",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "course_id"))
+    @ManyToMany(mappedBy = "teachers")
     Set<CourseEntity> teacherCourses = new HashSet<>();
 
 
