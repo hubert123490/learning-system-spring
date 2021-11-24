@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.LessonService;
+import com.hubex.learningsystem.app.models.dtos.LessonDTO;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.entities.LessonEntity;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
@@ -13,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class LessonServiceImpl implements LessonService {
@@ -37,7 +39,7 @@ public class LessonServiceImpl implements LessonService {
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
         }
-        if (loggedUser.getTeacherCourses().stream().noneMatch(item -> item.getId().equals(Long.valueOf(courseId)))) {
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
         } else {
             LessonEntity lesson = modelMapper.map(request, LessonEntity.class);
@@ -50,7 +52,7 @@ public class LessonServiceImpl implements LessonService {
             } catch (Exception e) {
 
             }
-            return new UniversalResponse("Z powodzeniem utworzono lekcję", "SUCCESS");
+            return new UniversalResponse("Z powodzeniem utworzono lekcję", "SUCCESS", lesson.getId());
         }
     }
 
@@ -64,9 +66,9 @@ public class LessonServiceImpl implements LessonService {
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
         }
-//        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
-//            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
-//        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+       }
         else {
             LessonEntity lessonToDelete = lessonRepository.findById(Long.valueOf(lessonId)).orElse(null);
             System.out.println(lessonToDelete);
@@ -79,5 +81,31 @@ public class LessonServiceImpl implements LessonService {
             }
         }
         return new UniversalResponse("Z powodzeniem usunięto lekcję", "SUCCESS");
+    }
+
+    @Override
+    public LessonDTO getLesson(String lessonId, String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        }
+        else {
+            LessonEntity lesson = lessonRepository.findById(Long.valueOf(lessonId)).orElse(null);
+            if (lesson == null) {
+                throw new NullPointerException("Nie znaleziono lekcji");
+            } else {
+                LessonDTO returnValue = new LessonDTO();
+                returnValue.setId(lesson.getId());
+                returnValue.setName(lesson.getName());
+                return returnValue;
+            }
+        }
     }
 }

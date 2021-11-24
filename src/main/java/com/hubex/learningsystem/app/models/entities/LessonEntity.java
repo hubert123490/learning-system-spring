@@ -25,12 +25,11 @@ public class LessonEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    private String content;
-
-    @OneToMany(mappedBy = "lesson")
-    private Set<DBFileEntity> files = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name="course_id")
     private CourseEntity course;
+
+    @OneToMany(mappedBy = "lesson")
+    private Set<ContentEntity> contents = new HashSet<>();
 }
