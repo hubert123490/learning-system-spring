@@ -1,7 +1,7 @@
 package com.hubex.learningsystem.filestorage.logic.servicesImpl;
 
-import com.hubex.learningsystem.app.models.entities.LessonEntity;
-import com.hubex.learningsystem.app.models.repositories.LessonRepository;
+import com.hubex.learningsystem.app.models.entities.ContentEntity;
+import com.hubex.learningsystem.app.models.repositories.ContentRepository;
 import com.hubex.learningsystem.filestorage.exceptions.FileNotFoundException;
 import com.hubex.learningsystem.filestorage.exceptions.FileStorageException;
 import com.hubex.learningsystem.filestorage.logic.services.DBFileService;
@@ -16,28 +16,47 @@ import java.io.IOException;
 @Service
 public class DBFileServiceImpl implements DBFileService {
     private final DBFileRepository dbFileRepository;
-    private final LessonRepository lessonRepository;
+    private final ContentRepository contentRepository;
 
-    public DBFileServiceImpl(DBFileRepository dbFileRepository, LessonRepository lessonRepository) {
+    public DBFileServiceImpl(DBFileRepository dbFileRepository, ContentRepository contentRepository) {
         this.dbFileRepository = dbFileRepository;
-        this.lessonRepository = lessonRepository;
+        this.contentRepository = contentRepository;
     }
 
     @Override
-    public DBFileEntity storeFile(MultipartFile file, String lessonId) {
+    public DBFileEntity storeFile(MultipartFile file) {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
         try {
-            if(fileName.contains("..")) {
+            if (fileName.contains("..")) {
                 throw new FileStorageException("Przepraszamy! Nazwa pliku zawiera nieprawidłową sekwencję znaków " + fileName);
             }
 
             DBFileEntity dbFile = new DBFileEntity(fileName, file.getContentType(), file.getBytes());
-            LessonEntity lesson = lessonRepository.findById(Long.valueOf(lessonId)).orElse(null);
-            if(lesson == null) {
-                throw new NullPointerException("Nie znaleziono lekcji o podanym id");
+
+            return dbFileRepository.save(dbFile);
+        } catch (IOException ex) {
+            throw new FileStorageException("Nie można zapisać pliku " + fileName + ". Proszę spróbować ponownie!", ex);
+        }
+    }
+
+    @Override
+    public DBFileEntity storeFileContent(MultipartFile file, String contentId) {
+        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+
+        try {
+            if (fileName.contains("..")) {
+                throw new FileStorageException("Przepraszamy! Nazwa pliku zawiera nieprawidłową sekwencję znaków " + fileName);
             }
-            dbFile.setLesson(lesson);
+
+            DBFileEntity dbFile = new DBFileEntity(fileName, file.getContentType(), file.getBytes());
+            ContentEntity contentEntity = contentRepository.findById(Long.valueOf(contentId)).orElse(null);
+
+            if (contentEntity == null) {
+                throw new NullPointerException("Nie znaleziono kontentu o podanym id");
+            }
+
+            dbFile.setContent(contentEntity);
 
             return dbFileRepository.save(dbFile);
         } catch (IOException ex) {

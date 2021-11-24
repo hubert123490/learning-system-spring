@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/file")
+@RequestMapping("/api/files")
 public class FileController {
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
     private final DBFileServiceImpl dbFileService;
@@ -29,11 +29,11 @@ public class FileController {
     }
 
     @PostMapping("/upload-file")
-    public UploadFileResponse uploadFile(@RequestParam("file")MultipartFile file, @RequestParam("lessonId") String lessonId) {
-        DBFileEntity dbFile = dbFileService.storeFile(file, lessonId);
+    public UploadFileResponse uploadFile(@RequestParam("file")MultipartFile file) {
+        DBFileEntity dbFile = dbFileService.storeFile(file);
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/downloadFile/")
+                .path("/")
                 .path(dbFile.getId())
                 .toUriString();
 
@@ -41,14 +41,14 @@ public class FileController {
                 file.getContentType(), file.getSize());
     }
 
-//    @PostMapping("upload-multiple-files")
-//    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
-//        return Arrays.stream(files)
-//                .map(this::uploadFile)
-//                .collect(Collectors.toList());
-//    }
+    @PostMapping("/upload-multiple-files")
+    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
+        return Arrays.stream(files)
+                .map(this::uploadFile)
+                .collect(Collectors.toList());
+    }
 
-    @GetMapping("download-file/{fileId}")
+    @GetMapping("/{fileId}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileId) {
         DBFileEntity dbFile = dbFileService.getFile(fileId);
 

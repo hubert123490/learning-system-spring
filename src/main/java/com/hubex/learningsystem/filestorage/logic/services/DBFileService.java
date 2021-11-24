@@ -4,6 +4,7 @@ import com.hubex.learningsystem.filestorage.models.entities.DBFileEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface DBFileService {
-    DBFileEntity storeFile(MultipartFile file, String lessonId);
+    DBFileEntity storeFile(MultipartFile file);
+    DBFileEntity storeFileContent(MultipartFile file, String contentId);
     DBFileEntity getFile(String fileId);
 }

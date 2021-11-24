@@ -1,5 +1,6 @@
 package com.hubex.learningsystem.filestorage.models.entities;
 
+import com.hubex.learningsystem.app.models.entities.ContentEntity;
 import com.hubex.learningsystem.app.models.entities.LessonEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,8 +33,8 @@ public class DBFileEntity implements Serializable {
     private byte[] data;
 
     @ManyToOne
-    @JoinColumn(name="lesson_id")
-    private LessonEntity lesson;
+    @JoinColumn(name="content_id")
+    private ContentEntity content;
 
     public DBFileEntity(String fileName, String fileType, byte[] data) {
         this.fileName = fileName;
