@@ -5,6 +5,8 @@ import com.hubex.learningsystem.app.models.dtos.CourseDetails;
 import com.hubex.learningsystem.app.models.requests.CreateCourseRequest;
 import com.hubex.learningsystem.app.models.responses.CreateCourseResponse;
 import com.hubex.learningsystem.app.models.responses.GetAllCoursesResponse;
+import com.hubex.learningsystem.app.models.responses.UniversalResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class CourseController {
         this.courseService = courseService;
     }
 
-    @PostMapping("/create-course")
+    @PostMapping()
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> createCourse(@Valid @RequestBody CreateCourseRequest courseRequest) {
@@ -63,12 +65,38 @@ public class CourseController {
     @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
     @ResponseBody
     public ResponseEntity<?> getCourseDetails(@PathVariable String courseId) {
-        CourseDetails response = courseService.getCourseDetails(courseId);
-        if(response.getLessons().isEmpty()){
+        try {
+            CourseDetails response = courseService.getCourseDetails(courseId);
+            if(response.getLessons().isEmpty()){
+                return ResponseEntity.ok(response);
+            } else if (!response.getLessons().isEmpty()) {
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            CourseDetails response = new CourseDetails();
+            response.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{courseId}")
+    @PreAuthorize("hasRole('TEACHER')")
+    @ResponseBody
+    public ResponseEntity<?> deleteCourse(@PathVariable String courseId) {
+        UniversalResponse response = courseService.deleteCourse(courseId);
+        if(response.getStatus().equals("ERROR")){
             return ResponseEntity.badRequest().body(response);
-        } else if (!response.getLessons().isEmpty()) {
+        } else if (!response.getStatus().equals("SUCCESS")) {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{courseId}")
+    @PreAuthorize("hasRole('STUDENT')")
+    @ResponseBody
+    public UniversalResponse enrollInCourse(@PathVariable String courseId, @Valid @RequestBody String password){
+        return courseService.enrollInCourse(courseId, password);
     }
 }

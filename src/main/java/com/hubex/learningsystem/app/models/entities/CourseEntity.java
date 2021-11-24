@@ -35,10 +35,18 @@ public class CourseEntity implements Serializable {
 
     private String password = "";
 
-    @ManyToMany(mappedBy = "studentCourses")
+    @ManyToMany
+    @JoinTable(
+            name = "students_courses",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<UserEntity> students = new HashSet<>();
 
-    @ManyToMany(mappedBy = "teacherCourses")
+    @ManyToMany
+    @JoinTable(
+            name = "teachers_courses",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     Set<UserEntity> teachers = new HashSet<>();
 
     @OneToMany(mappedBy = "course")

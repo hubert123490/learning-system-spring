@@ -13,6 +13,7 @@ import com.hubex.learningsystem.app.models.repositories.LessonRepository;
 import com.hubex.learningsystem.app.models.requests.CreateCourseRequest;
 import com.hubex.learningsystem.app.models.responses.CreateCourseResponse;
 import com.hubex.learningsystem.app.models.responses.GetAllCoursesResponse;
+import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +47,8 @@ public class CourseServiceImpl implements CourseService {
 
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
-        } else {
+        }
+        else {
             CourseEntity course = modelMapper.map(courseRequest, CourseEntity.class);
             course.getTeachers().add(loggedUser);
             loggedUser.getTeacherCourses().add(course);
@@ -56,9 +57,9 @@ public class CourseServiceImpl implements CourseService {
             try {
                 courseRepository.save(course);
             } catch (Exception e) {
-                return new CreateCourseResponse("Niepoprawna nazwa kursu", "ERROR");
+                return new CreateCourseResponse("Niepoprawna nazwa kursu", "ERROR", null);
             }
-            return new CreateCourseResponse("Z powodzeniem utworzono kurs", "SUCCESS");
+            return new CreateCourseResponse("Z powodzeniem utworzono kurs", "SUCCESS", course.getId());
         }
     }
 
@@ -100,12 +101,75 @@ public class CourseServiceImpl implements CourseService {
 
         if(loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId))) &&
+        loggedUser.getStudentCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+
         } else {
-            List<LessonEntity> lessons = new ArrayList<>(courseRepository.findById(Long.valueOf(courseId)).get().getLessons());
+            CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+            if(course == null) {
+                throw new NullPointerException("Nie znaleziono kursu o podanym id");
+            }
+            List<LessonEntity> lessons = new ArrayList<>(course.getLessons());
             List<LessonDTO> lessonDTOS = lessons.stream().map(lesson -> modelMapper.map(lesson, LessonDTO.class)).collect(Collectors.toList());
             CourseDetails courseDetails = new CourseDetails();
             courseDetails.setLessons(lessonDTOS);
             return courseDetails;
+        }
+    }
+
+    @Override
+    public UniversalResponse deleteCourse(String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        }
+        else {
+            CourseEntity courseToDelete = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+            try {
+                courseRepository.delete(courseToDelete);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new UniversalResponse("Operacja nie powiodła się", "ERROR");
+            }
+        }
+        return new UniversalResponse("Z powodzeniem usunięto kurs", "SUCCESS");
+    }
+
+    @Override
+    public UniversalResponse enrollInCourse(String courseId, String password) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        } else {
+            CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+            if(course == null){
+                throw new NullPointerException("Nie znaleziono kursu o podanym id");
+            }
+
+            if(course.getPassword().equals(password))
+                course.getStudents().add(loggedUser);
+            else
+                throw new RuntimeException("Nieprawidłowe hasło");
+
+            try {
+                courseRepository.save(course);
+            } catch (Exception e){
+                return new UniversalResponse("Operacja nie powiodła się", "ERROR");
+            }
+            return new UniversalResponse("Zapisano do kursu", "SUCCESS");
         }
     }
 }
