@@ -51,4 +51,7 @@ public class CourseEntity implements Serializable {
 
     @OneToMany(mappedBy = "course")
     Set<LessonEntity> lessons = new HashSet<>();
+
+    @OneToMany(mappedBy = "course")
+    Set<ExamEntity> exams = new HashSet<>();
 }

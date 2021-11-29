@@ -15,5 +15,6 @@ public class CourseDetails implements Serializable {
     private static final long serialVersionUID = 5566666150667358804L;
 
     private List<LessonDTO> lessons;
+    private List<ExamDTO> exams;
     private String message;
 }
