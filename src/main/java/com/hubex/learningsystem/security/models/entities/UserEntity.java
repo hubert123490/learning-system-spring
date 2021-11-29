@@ -1,7 +1,9 @@
 package com.hubex.learningsystem.security.models.entities;
 
+import com.hubex.learningsystem.app.models.entities.AnswerEntity;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.entities.PersonEntity;
+import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
 import com.hubex.learningsystem.security.models.enums.Roles;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -55,6 +57,9 @@ public class UserEntity implements Serializable {
 
     @ManyToMany(mappedBy = "teachers")
     Set<CourseEntity> teacherCourses = new HashSet<>();
+
+    @OneToMany(mappedBy = "student")
+    Set<SubmissionEntity> submissions;
 
 
     public UserEntity ( String email, String password) {
