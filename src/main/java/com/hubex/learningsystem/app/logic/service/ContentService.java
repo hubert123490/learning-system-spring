@@ -2,7 +2,6 @@ package com.hubex.learningsystem.app.logic.service;
 
 import com.hubex.learningsystem.app.models.dtos.ContentDTO;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
-import com.hubex.learningsystem.filestorage.models.entities.DBFileEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
