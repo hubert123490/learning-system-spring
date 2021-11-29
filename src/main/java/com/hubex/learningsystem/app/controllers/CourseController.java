@@ -38,8 +38,9 @@ public class CourseController {
 
     @GetMapping()
     @ResponseBody
-    public ResponseEntity<?> getAllCourses() {
-        GetAllCoursesResponse response = courseService.getAllCourses();
+    public ResponseEntity<?> getAllCourses(@RequestParam(required = false) String name, @RequestParam(required = false) String category,
+                                           @RequestParam(required = false) String lastName) {
+        GetAllCoursesResponse response = courseService.getAllCourses(name, category, lastName);
         if(response.getCourses().isEmpty()){
             return ResponseEntity.badRequest().body(response);
         } else if (!response.getCourses().isEmpty()) {
@@ -48,11 +49,24 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/my-courses")
+    @GetMapping("/my-courses-teacher")
     @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
     @ResponseBody
     public ResponseEntity<?> getMyCourses() {
         GetAllCoursesResponse response = courseService.getTeacherCourses();
+        if(response.getCourses().isEmpty()){
+            return ResponseEntity.badRequest().body(response);
+        } else if (!response.getCourses().isEmpty()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/my-courses-student")
+    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
+    @ResponseBody
+    public ResponseEntity<?> getMyCoursesStudent() {
+        GetAllCoursesResponse response = courseService.getStudentCourses();
         if(response.getCourses().isEmpty()){
             return ResponseEntity.badRequest().body(response);
         } else if (!response.getCourses().isEmpty()) {

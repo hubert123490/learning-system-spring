@@ -8,8 +8,9 @@ import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 
 public interface CourseService {
     CreateCourseResponse createCourse(CreateCourseRequest courseRequest);
-    GetAllCoursesResponse getAllCourses();
+    GetAllCoursesResponse getAllCourses(String name, String category, String lastName);
     GetAllCoursesResponse getTeacherCourses();
+    GetAllCoursesResponse getStudentCourses();
     CourseDetails getCourseDetails(String id);
     UniversalResponse deleteCourse(String courseId);
     UniversalResponse enrollInCourse(String courseId, String password);

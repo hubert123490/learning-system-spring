@@ -1,11 +1,9 @@
 package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.CourseService;
-import com.hubex.learningsystem.app.models.dtos.CourseDTO;
-import com.hubex.learningsystem.app.models.dtos.CourseDetails;
-import com.hubex.learningsystem.app.models.dtos.LessonDTO;
-import com.hubex.learningsystem.app.models.dtos.PersonDTO;
+import com.hubex.learningsystem.app.models.dtos.*;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
+import com.hubex.learningsystem.app.models.entities.ExamEntity;
 import com.hubex.learningsystem.app.models.entities.LessonEntity;
 import com.hubex.learningsystem.app.models.entities.PersonEntity;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
@@ -47,8 +45,7 @@ public class CourseServiceImpl implements CourseService {
 
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
-        }
-        else {
+        } else {
             CourseEntity course = modelMapper.map(courseRequest, CourseEntity.class);
             course.getTeachers().add(loggedUser);
             loggedUser.getTeacherCourses().add(course);
@@ -64,16 +61,16 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public GetAllCoursesResponse getAllCourses() {
-        List<CourseDTO> courses = courseRepository.findAll().stream().map(item -> {
+    public GetAllCoursesResponse getAllCourses(String name, String category, String lastName) {
+        List<CourseDTO> courses = courseRepository.findAllByNameAndCategory(name, category, lastName).stream().map(item -> {
             CourseDTO returnCourse = modelMapper.map(item, CourseDTO.class);
             List<PersonEntity> persons = item.getTeachers().stream().map(UserEntity::getPerson).collect(Collectors.toList());
             List<PersonDTO> personsDTO = persons.stream().map(person -> modelMapper.map(person, PersonDTO.class)).collect(Collectors.toList());
             returnCourse.setPerson(personsDTO);
             return returnCourse;
         }).collect(Collectors.toList());
-
         return new GetAllCoursesResponse(courses);
+
     }
 
     @Override
@@ -93,28 +90,47 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public GetAllCoursesResponse getStudentCourses() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        } else {
+            List<CourseDTO> myCourses = courseRepository.findAllByStudentsEmail(loggedUser.getEmail()).stream().map(item -> modelMapper.map(item, CourseDTO.class)).collect(Collectors.toList());
+
+            return new GetAllCoursesResponse(myCourses);
+        }
+    }
+
+    @Override
     public CourseDetails getCourseDetails(String courseId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
         UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
 
-        if(loggedUser == null) {
+        if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
         }
         if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId))) &&
-        loggedUser.getStudentCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+                loggedUser.getStudentCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
 
         } else {
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
-            if(course == null) {
+            if (course == null) {
                 throw new NullPointerException("Nie znaleziono kursu o podanym id");
             }
             List<LessonEntity> lessons = new ArrayList<>(course.getLessons());
+            List<ExamEntity> exams = new ArrayList<>(course.getExams());
             List<LessonDTO> lessonDTOS = lessons.stream().map(lesson -> modelMapper.map(lesson, LessonDTO.class)).collect(Collectors.toList());
+            List<ExamDTO> examDTOS = exams.stream().map(exam -> modelMapper.map(exam, ExamDTO.class)).collect(Collectors.toList());
             CourseDetails courseDetails = new CourseDetails();
             courseDetails.setLessons(lessonDTOS);
+            courseDetails.setExams(examDTOS);
             return courseDetails;
         }
     }
@@ -131,8 +147,7 @@ public class CourseServiceImpl implements CourseService {
         }
         if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
-        }
-        else {
+        } else {
             CourseEntity courseToDelete = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
             try {
                 courseRepository.delete(courseToDelete);
@@ -155,18 +170,18 @@ public class CourseServiceImpl implements CourseService {
             throw new RuntimeException("Zaloguj się aby kontynuować");
         } else {
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
-            if(course == null){
+            if (course == null) {
                 throw new NullPointerException("Nie znaleziono kursu o podanym id");
             }
 
-            if(course.getPassword().equals(password))
+            if (course.getPassword().equals(password))
                 course.getStudents().add(loggedUser);
             else
                 throw new RuntimeException("Nieprawidłowe hasło");
 
             try {
                 courseRepository.save(course);
-            } catch (Exception e){
+            } catch (Exception e) {
                 return new UniversalResponse("Operacja nie powiodła się", "ERROR");
             }
             return new UniversalResponse("Zapisano do kursu", "SUCCESS");
