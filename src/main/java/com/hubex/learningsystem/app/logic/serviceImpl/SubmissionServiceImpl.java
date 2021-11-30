@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.SubmissionService;
+import com.hubex.learningsystem.app.models.dtos.SubmissionDTO;
 import com.hubex.learningsystem.app.models.entities.ExamEntity;
 import com.hubex.learningsystem.app.models.entities.QuestionEntity;
 import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
@@ -9,17 +10,21 @@ import com.hubex.learningsystem.app.models.repositories.SubmissionRepository;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
     private final SubmissionRepository submissionRepository;
+    private final ModelMapper modelMapper = new ModelMapper();
 
     public SubmissionServiceImpl(UserRepository userRepository, ExamRepository examRepository, SubmissionRepository submissionRepository) {
         this.userRepository = userRepository;
@@ -96,7 +101,45 @@ public class SubmissionServiceImpl implements SubmissionService {
             else if(!submission.isClosed()){
                 return new UniversalResponse("Egzamin nadal trwa", "PENDING");
             }
+            else if(submission.getAnswers().stream().anyMatch(answer -> !answer.isChecked())) {
+                return new UniversalResponse("Egzamin nadal wymaga sprawdzenia przez nauczyciela", "PENDING");
+            }
             return new UniversalResponse("Uzyskana liczba punktów: " + submission.getStudentScore() + " na " + submission.getMaxScore(), "ERROR");
+        }
+    }
+
+    @Override
+    public List<SubmissionDTO> findSubmissions(String courseId, String examId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            System.out.println("error security");
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            ExamEntity exam = examRepository.findById(Long.valueOf(examId)).orElse(null);
+            if (exam == null) {
+                throw new NullPointerException("Nie znaleziono egzaminu o podanym id");
+            }
+
+            List<SubmissionDTO> submissions = exam.getSubmissions().stream()
+                    .filter((item) -> item.getAnswers().stream()
+                            .anyMatch(answer -> !answer.isChecked()))
+                    .map(answer -> {
+                        SubmissionDTO returnValue = modelMapper.map(answer, SubmissionDTO.class);
+                        returnValue.setStudentFirstName(answer.getStudent().getPerson().getFirstName());
+                        returnValue.setStudentLastName(answer.getStudent().getPerson().getLastName());
+                        return returnValue;
+                    })
+                    .collect(Collectors.toList());
+
+
+            return submissions;
         }
     }
 }
