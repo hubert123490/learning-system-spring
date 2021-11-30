@@ -110,7 +110,7 @@ public class CourseController {
     @PostMapping("/{courseId}")
     @PreAuthorize("hasRole('STUDENT')")
     @ResponseBody
-    public UniversalResponse enrollInCourse(@PathVariable String courseId, @Valid @RequestBody String password){
+    public UniversalResponse enrollInCourse(@PathVariable String courseId, @RequestBody String password){
         return courseService.enrollInCourse(courseId, password);
     }
 }

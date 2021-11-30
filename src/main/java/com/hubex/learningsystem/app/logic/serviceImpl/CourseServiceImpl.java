@@ -174,7 +174,7 @@ public class CourseServiceImpl implements CourseService {
                 throw new NullPointerException("Nie znaleziono kursu o podanym id");
             }
 
-            if (course.getPassword().equals(password))
+            if (course.getPassword().equals(password) || course.getPassword().isEmpty())
                 course.getStudents().add(loggedUser);
             else
                 throw new RuntimeException("Nieprawidłowe hasło");
