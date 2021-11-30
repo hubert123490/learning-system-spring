@@ -24,16 +24,17 @@ public class AnswerEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private boolean checked = false;
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    QuestionEntity question;
+    private QuestionEntity question;
 
     @ManyToOne
     @JoinColumn(name = "submission_id")
-    SubmissionEntity submission;
+    private SubmissionEntity submission;
 
-    String givenAnswer;
+    private String givenAnswer;
 
-    int points;
+    private int points;
 }
