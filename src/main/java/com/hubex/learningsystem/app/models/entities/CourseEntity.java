@@ -40,18 +40,18 @@ public class CourseEntity implements Serializable {
             name = "students_courses",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<UserEntity> students = new HashSet<>();
+    private Set<UserEntity> students = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
             name = "teachers_courses",
             joinColumns = @JoinColumn(name = "course_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id"))
-    Set<UserEntity> teachers = new HashSet<>();
+    private Set<UserEntity> teachers = new HashSet<>();
 
     @OneToMany(mappedBy = "course")
-    Set<LessonEntity> lessons = new HashSet<>();
+    private Set<LessonEntity> lessons = new HashSet<>();
 
     @OneToMany(mappedBy = "course")
-    Set<ExamEntity> exams = new HashSet<>();
+    private Set<ExamEntity> exams = new HashSet<>();
 }

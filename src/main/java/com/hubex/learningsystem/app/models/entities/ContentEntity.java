@@ -32,7 +32,7 @@ public class ContentEntity implements Serializable {
     private String textArea = "";
 
     @OneToMany(mappedBy = "content")
-    Set<DBFileEntity> files = new HashSet<>();
+    private Set<DBFileEntity> files = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "lesson_id")
