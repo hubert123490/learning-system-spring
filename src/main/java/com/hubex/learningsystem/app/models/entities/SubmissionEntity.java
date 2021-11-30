@@ -25,11 +25,11 @@ public class SubmissionEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    LocalDateTime startDate;
+    private LocalDateTime startDate;
 
-    LocalDateTime endDate;
+    private LocalDateTime endDate;
 
-    boolean isClosed = false;
+    private boolean isClosed = false;
 
     private double grade;
 
@@ -38,11 +38,11 @@ public class SubmissionEntity implements Serializable {
     private int studentScore;
 
     @OneToMany(mappedBy = "submission")
-    Set<AnswerEntity> answers;
+    private Set<AnswerEntity> answers;
 
     @ManyToOne
     @JoinColumn(name = "exam_id")
-    ExamEntity exam;
+    private ExamEntity exam;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
