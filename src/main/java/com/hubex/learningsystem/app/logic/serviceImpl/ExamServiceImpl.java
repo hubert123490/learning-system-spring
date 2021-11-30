@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.ExamService;
+import com.hubex.learningsystem.app.models.dtos.ExamDTO;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.entities.ExamEntity;
 import com.hubex.learningsystem.app.models.entities.LessonEntity;
@@ -14,6 +15,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ExamServiceImpl implements ExamService {
@@ -81,5 +87,22 @@ public class ExamServiceImpl implements ExamService {
             }
         }
         return new UniversalResponse("Z powodzeniem usunięto egzamin", "SUCCESS");
+    }
+
+    @Override
+    public List<ExamDTO> getUncheckedExams(String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        else {
+            List<ExamDTO> exams = examRepository.findAllByCourse_TeachersAndCourse_Id(loggedUser, Long.valueOf(courseId)).stream().map(exam -> modelMapper.map(exam, ExamDTO.class))
+                    .collect(Collectors.toList());
+            return exams;
+        }
     }
 }

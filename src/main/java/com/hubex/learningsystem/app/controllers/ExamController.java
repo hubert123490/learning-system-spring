@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.controllers;
 
 import com.hubex.learningsystem.app.logic.serviceImpl.ExamServiceImpl;
+import com.hubex.learningsystem.app.models.dtos.ExamDTO;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -43,5 +45,12 @@ public class ExamController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    @ResponseBody
+    @PreAuthorize("hasRole('TEACHER')")
+    public List<ExamDTO> getUncheckedExams(@PathVariable String courseId) {
+        return examService.getUncheckedExams(courseId);
     }
 }
