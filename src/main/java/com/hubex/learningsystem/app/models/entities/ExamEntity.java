@@ -33,9 +33,9 @@ public class ExamEntity implements Serializable {
     private CourseEntity course;
 
     @OneToMany(mappedBy = "exam")
-    Set<QuestionEntity> questions = new HashSet<>();
+    private Set<QuestionEntity> questions = new HashSet<>();
 
     @OneToMany(mappedBy = "exam")
-    Set<SubmissionEntity> submissions;
+    private Set<SubmissionEntity> submissions;
 
 }
