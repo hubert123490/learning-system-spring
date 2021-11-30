@@ -33,12 +33,12 @@ public class QuestionEntity implements Serializable {
     private int maxPoints;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
-    Set<QueryEntity> queries = new HashSet<>();
+    private Set<QueryEntity> queries = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name="exam_id")
     private ExamEntity exam;
 
     @OneToMany(mappedBy = "question")
-    Set<AnswerEntity> answers;
+    private Set<AnswerEntity> answers;
 }

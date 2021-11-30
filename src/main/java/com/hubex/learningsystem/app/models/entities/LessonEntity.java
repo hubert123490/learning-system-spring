@@ -1,6 +1,5 @@
 package com.hubex.learningsystem.app.models.entities;
 
-import com.hubex.learningsystem.filestorage.models.entities.DBFileEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
