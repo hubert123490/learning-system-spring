@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,10 @@ public class ExamEntity implements Serializable {
     private String name;
 
     private String description;
+
+    private LocalDateTime startDate;
+
+    private LocalDateTime endDate;
 
     @ManyToOne
     @JoinColumn(name="course_id")

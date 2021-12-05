@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface ExamRepository extends JpaRepository<ExamEntity, Long> {
     List<ExamEntity> findAllByCourse_TeachersAndCourse_Id(UserEntity teacher, Long courseId);
+    List<ExamEntity> findAllByCourse_Students(UserEntity student);
 }

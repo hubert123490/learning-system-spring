@@ -17,4 +17,5 @@ public class ExamDTO implements Serializable {
     private Long id;
     private String name;
     private String description;
+    private Long courseId;
 }
