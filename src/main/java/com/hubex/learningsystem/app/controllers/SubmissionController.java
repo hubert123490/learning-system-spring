@@ -2,6 +2,7 @@ package com.hubex.learningsystem.app.controllers;
 
 import com.hubex.learningsystem.app.logic.serviceImpl.SubmissionServiceImpl;
 import com.hubex.learningsystem.app.models.dtos.SubmissionDTO;
+import com.hubex.learningsystem.app.models.responses.CheckSubmissionResponse;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class SubmissionController {
     @GetMapping()
     @ResponseBody
     @PreAuthorize("hasRole('STUDENT')")
-    public UniversalResponse checkSubmission(@PathVariable String courseId, @PathVariable String examId) {
+    public CheckSubmissionResponse checkSubmission(@PathVariable String courseId, @PathVariable String examId) {
         return submissionService.checkSubmission(courseId, examId);
     }
 

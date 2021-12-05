@@ -7,6 +7,7 @@ import com.hubex.learningsystem.app.models.entities.QuestionEntity;
 import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
 import com.hubex.learningsystem.app.models.repositories.ExamRepository;
 import com.hubex.learningsystem.app.models.repositories.SubmissionRepository;
+import com.hubex.learningsystem.app.models.responses.CheckSubmissionResponse;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
@@ -50,6 +51,10 @@ public class SubmissionServiceImpl implements SubmissionService {
                 throw new NullPointerException("Nie znaleziono egzaminu o podanym id");
             }
 
+            if(LocalDateTime.now().isBefore(exam.getStartDate()) || LocalDateTime.now().isAfter(exam.getEndDate())){
+                return new UniversalResponse("Sprawdź czas podejścia do egzaminu", "ERROR");
+            }
+
             SubmissionEntity submission = new SubmissionEntity();
             submission.setExam(exam);
             submission.setClosed(false);
@@ -76,7 +81,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public UniversalResponse checkSubmission(String courseId, String examId) {
+    public CheckSubmissionResponse checkSubmission(String courseId, String examId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
@@ -95,16 +100,19 @@ public class SubmissionServiceImpl implements SubmissionService {
             }
 
             SubmissionEntity submission = submissionRepository.findByStudent_EmailAndExam(loggedUser.getEmail(), exam);
-            if (submission == null) {
-                return new UniversalResponse("Możesz podejść do egzaminu", "SUCCESS");
+            if (submission == null && (LocalDateTime.now().isAfter(exam.getStartDate()) && LocalDateTime.now().isBefore(exam.getEndDate()))) {
+                return new CheckSubmissionResponse("Możesz podejść do egzaminu", "SUCCESS", exam.getStartDate(), exam.getEndDate());
+            }
+            else if(LocalDateTime.now().isAfter(exam.getEndDate())) {
+                return new CheckSubmissionResponse("Egzamin zakończył się", "ENDED", exam.getStartDate(), exam.getEndDate());
             }
             else if(!submission.isClosed()){
-                return new UniversalResponse("Egzamin nadal trwa", "PENDING");
+                return new CheckSubmissionResponse("Egzamin nadal trwa", "PENDING", exam.getStartDate(), exam.getEndDate());
             }
             else if(submission.getAnswers().stream().anyMatch(answer -> !answer.isChecked())) {
-                return new UniversalResponse("Egzamin nadal wymaga sprawdzenia przez nauczyciela", "PENDING");
+                return new CheckSubmissionResponse("Egzamin nadal wymaga sprawdzenia przez nauczyciela", "CHECKING", exam.getStartDate(), exam.getEndDate());
             }
-            return new UniversalResponse("Uzyskana liczba punktów: " + submission.getStudentScore() + " na " + submission.getMaxScore(), "ERROR");
+            return new CheckSubmissionResponse("Uzyskana liczba punktów: " + submission.getStudentScore() + " na " + submission.getMaxScore(), "ERROR", exam.getStartDate(), exam.getEndDate());
         }
     }
 
