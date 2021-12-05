@@ -10,4 +10,5 @@ public interface ExamService {
     UniversalResponse createExam(CreateExamRequest request, String courseId);
     UniversalResponse deleteExam(String courseId, String examId);
     List<ExamDTO> getUncheckedExams(String courseId);
+    List<ExamDTO> getPendingExams();
 }

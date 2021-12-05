@@ -13,7 +13,7 @@ import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/api/courses/{courseId}/exams")
+@RequestMapping("/api/courses")
 public class ExamController {
     private final ExamServiceImpl examService;
 
@@ -21,12 +21,12 @@ public class ExamController {
         this.examService = examService;
     }
 
-    @PostMapping
+    @PostMapping("/{courseId}/exams")
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> createExam(@Valid @RequestBody CreateExamRequest examRequest, @PathVariable String courseId) {
         UniversalResponse response = examService.createExam(examRequest, courseId);
-        if(response.getStatus().equals("ERROR")){
+        if (response.getStatus().equals("ERROR")) {
             return ResponseEntity.badRequest().body(response);
         } else if (response.getStatus().equals("SUCCESS")) {
             return ResponseEntity.ok(response);
@@ -34,12 +34,12 @@ public class ExamController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{examId}")
+    @DeleteMapping("/{courseId}/exams/{examId}")
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> deleteExam(@PathVariable String courseId, @PathVariable String examId) {
         UniversalResponse response = examService.deleteExam(courseId, examId);
-        if(response.getStatus().equals("ERROR")){
+        if (response.getStatus().equals("ERROR")) {
             return ResponseEntity.badRequest().body(response);
         } else if (response.getStatus().equals("SUCCESS")) {
             return ResponseEntity.ok(response);
@@ -47,10 +47,17 @@ public class ExamController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
+    @GetMapping("/{courseId}/exams")
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
     public List<ExamDTO> getUncheckedExams(@PathVariable String courseId) {
         return examService.getUncheckedExams(courseId);
+    }
+
+    @GetMapping("/pending-exams")
+    @ResponseBody
+    @PreAuthorize("hasRole('STUDENT')")
+    public List<ExamDTO> getPendingExams() {
+        return examService.getPendingExams();
     }
 }

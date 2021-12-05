@@ -4,7 +4,6 @@ import com.hubex.learningsystem.app.logic.service.ExamService;
 import com.hubex.learningsystem.app.models.dtos.ExamDTO;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.entities.ExamEntity;
-import com.hubex.learningsystem.app.models.entities.LessonEntity;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
 import com.hubex.learningsystem.app.models.repositories.ExamRepository;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
@@ -16,9 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +45,8 @@ public class ExamServiceImpl implements ExamService {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
         } else {
             ExamEntity exam = modelMapper.map(request, ExamEntity.class);
+            exam.setStartDate(request.getStartDate());
+            exam.setEndDate(request.getEndDate());
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
             exam.setCourse(course);
             course.getExams().add(exam);
@@ -73,10 +72,9 @@ public class ExamServiceImpl implements ExamService {
         }
         if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
-        }
-        else {
+        } else {
             ExamEntity examToDelete = examRepository.findById(Long.valueOf(examId)).orElse(null);
-            if(examToDelete == null){
+            if (examToDelete == null) {
                 throw new NullPointerException("Nie znaleziono egzaminu o podanym id");
             }
             try {
@@ -98,9 +96,28 @@ public class ExamServiceImpl implements ExamService {
 
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
-        }
-        else {
+        } else {
             List<ExamDTO> exams = examRepository.findAllByCourse_TeachersAndCourse_Id(loggedUser, Long.valueOf(courseId)).stream().map(exam -> modelMapper.map(exam, ExamDTO.class))
+                    .collect(Collectors.toList());
+            return exams;
+        }
+    }
+
+    @Override
+    public List<ExamDTO> getPendingExams() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        } else {
+            List<ExamDTO> exams = examRepository.findAllByCourse_Students(loggedUser).stream().map(exam -> {
+                ExamDTO returnValue = modelMapper.map(exam, ExamDTO.class);
+                returnValue.setCourseId(exam.getCourse().getId());
+                return returnValue;
+            })
                     .collect(Collectors.toList());
             return exams;
         }
