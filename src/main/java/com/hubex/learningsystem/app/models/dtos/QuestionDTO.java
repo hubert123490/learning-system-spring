@@ -19,5 +19,6 @@ public class QuestionDTO implements Serializable {
     private String description;
     private String type;
     private List<QueryDTO> queries = new ArrayList<>();
+    private String correctAnswer;
 
 }

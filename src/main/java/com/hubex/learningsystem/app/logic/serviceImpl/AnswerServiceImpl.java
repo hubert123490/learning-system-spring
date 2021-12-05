@@ -168,9 +168,12 @@ public class AnswerServiceImpl implements AnswerService {
 
             answer.setPoints(Integer.parseInt(request.getPoints()));
             answer.setChecked(true);
+            submission.setStudentScore(submission.getStudentScore() + answer.getPoints());
+            submission.setGrade((double)submission.getStudentScore() / submission.getMaxScore());
 
             try{
                 answerRepository.save(answer);
+                submissionRepository.save(submission);
             }catch (Exception e) {
                 e.printStackTrace();
             }
