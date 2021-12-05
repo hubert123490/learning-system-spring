@@ -5,6 +5,7 @@ import com.hubex.learningsystem.app.models.dtos.CourseDetails;
 import com.hubex.learningsystem.app.models.requests.CreateCourseRequest;
 import com.hubex.learningsystem.app.models.responses.CreateCourseResponse;
 import com.hubex.learningsystem.app.models.responses.GetAllCoursesResponse;
+import com.hubex.learningsystem.app.models.responses.StudentCourseGrades;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -112,5 +113,12 @@ public class CourseController {
     @ResponseBody
     public UniversalResponse enrollInCourse(@PathVariable String courseId, @RequestBody String password){
         return courseService.enrollInCourse(courseId, password);
+    }
+
+    @GetMapping("/{courseId}/students-grades")
+    @PreAuthorize("hasRole('TEACHER')")
+    @ResponseBody
+    public StudentCourseGrades getStudentsGrades(@PathVariable String courseId) {
+        return courseService.getStudentsGrades(courseId);
     }
 }

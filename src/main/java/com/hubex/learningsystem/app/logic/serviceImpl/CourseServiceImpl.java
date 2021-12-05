@@ -2,15 +2,13 @@ package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.CourseService;
 import com.hubex.learningsystem.app.models.dtos.*;
-import com.hubex.learningsystem.app.models.entities.CourseEntity;
-import com.hubex.learningsystem.app.models.entities.ExamEntity;
-import com.hubex.learningsystem.app.models.entities.LessonEntity;
-import com.hubex.learningsystem.app.models.entities.PersonEntity;
+import com.hubex.learningsystem.app.models.entities.*;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
 import com.hubex.learningsystem.app.models.repositories.LessonRepository;
 import com.hubex.learningsystem.app.models.requests.CreateCourseRequest;
 import com.hubex.learningsystem.app.models.responses.CreateCourseResponse;
 import com.hubex.learningsystem.app.models.responses.GetAllCoursesResponse;
+import com.hubex.learningsystem.app.models.responses.StudentCourseGrades;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
@@ -187,4 +185,81 @@ public class CourseServiceImpl implements CourseService {
             return new UniversalResponse("Zapisano do kursu", "SUCCESS");
         }
     }
+
+    @Override
+    public StudentCourseGrades getStudentsGrades(String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+            if(course == null){
+                throw new NullPointerException("Nie znaleziono kursu o podanym id");
+            }
+
+            StudentCourseGrades studentGrades = new StudentCourseGrades();
+            List<UserEntity> students = new ArrayList<>(course.getStudents());
+            for (UserEntity student:
+                 students) {
+                StudentGradeDTO studentDTO = new StudentGradeDTO();
+                studentDTO.setStudentId(student.getId());
+                studentDTO.setEmail(student.getEmail());
+                studentDTO.setFirstName(student.getPerson().getFirstName());
+                studentDTO.setLastName(student.getPerson().getLastName());
+
+                List<ExamGradeDTO> exams = course.getExams().stream().map(examEntity -> {
+                    List<SubmissionEntity> submissions = examEntity.getSubmissions().stream()
+                            .filter(submissionEntity -> submissionEntity.getStudent() == student).collect(Collectors.toList());
+                    ExamGradeDTO returnValue = new ExamGradeDTO();
+                    returnValue.setExamId(examEntity.getId());
+                    returnValue.setExamName(examEntity.getName());
+                    returnValue.setMaxPoints(examEntity.getQuestions().stream().mapToInt(QuestionEntity::getMaxPoints).sum());
+                    if(submissions.isEmpty()) {
+                        returnValue.setStudentPoints(0);
+                        returnValue.setStatus("NOT_SUBMITTED");
+                    }
+                    else {
+                        returnValue.setStudentPoints(submissions.stream().mapToInt(SubmissionEntity::getStudentScore).sum());
+                        returnValue.setStatus("SUBMITTED");
+                    }
+                    return returnValue;
+                }).collect(Collectors.toList());
+                studentDTO.setExams(exams);
+
+
+                studentDTO.setStudentPoints(student.getSubmissions().stream().filter(submissionEntity -> course.getExams().stream().anyMatch(examEntity -> examEntity == submissionEntity.getExam()))
+                        .mapToInt(SubmissionEntity::getStudentScore).sum());
+                studentDTO.setCoursePoints(course.getExams().stream().mapToInt(value -> value.getQuestions().stream().mapToInt(QuestionEntity::getMaxPoints).sum()).sum());
+                studentDTO.setGrade(convertGrade((double)studentDTO.getStudentPoints()/studentDTO.getCoursePoints()));
+                studentGrades.getStudentsGrades().add(studentDTO);
+            }
+            return studentGrades;
+        }
+    }
+
+    private double convertGrade(double grade) {
+        if(grade < 0.5)
+            return 2;
+        else if (grade >= 0.5 && grade < 0.6)
+            return 3;
+        else if (grade >= 0.6 && grade < 0.7)
+            return 3.5;
+        else if (grade >= 0.7 && grade < 0.8)
+            return 4;
+        else if (grade >= 0.8 && grade < 0.9)
+            return 4.5;
+        else if (grade >= 0.9 && grade <= 1.0)
+            return 5;
+        else
+            return -1;
+    }
 }
+
+
