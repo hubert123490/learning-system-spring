@@ -37,10 +37,10 @@ public class ExamEntity implements Serializable {
     @JoinColumn(name="course_id")
     private CourseEntity course;
 
-    @OneToMany(mappedBy = "exam")
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL)
     private Set<QuestionEntity> questions = new HashSet<>();
 
-    @OneToMany(mappedBy = "exam")
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL)
     private Set<SubmissionEntity> submissions;
 
 }

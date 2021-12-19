@@ -31,7 +31,7 @@ public class ContentEntity implements Serializable {
     @Lob
     private String textArea = "";
 
-    @OneToMany(mappedBy = "content")
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
     private Set<DBFileEntity> files = new HashSet<>();
 
     @ManyToOne

@@ -39,6 +39,6 @@ public class QuestionEntity implements Serializable {
     @JoinColumn(name="exam_id")
     private ExamEntity exam;
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL)
     private Set<AnswerEntity> answers;
 }
