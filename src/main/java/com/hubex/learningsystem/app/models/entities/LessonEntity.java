@@ -24,6 +24,7 @@ public class LessonEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String description;
 
     @ManyToOne
     @JoinColumn(name="course_id")

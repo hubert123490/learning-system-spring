@@ -7,4 +7,5 @@ import lombok.Setter;
 @Setter
 public class CreateLessonRequest {
     private String name;
+    private String description;
 }

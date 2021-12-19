@@ -17,6 +17,7 @@ public class LessonDTO implements Serializable {
 
     private Long id;
     private String name;
+    private String description;
     private String content;
     private List<String> fileUrls = new ArrayList<>();
 }
