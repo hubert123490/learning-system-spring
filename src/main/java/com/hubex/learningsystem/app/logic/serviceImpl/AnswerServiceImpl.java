@@ -165,6 +165,9 @@ public class AnswerServiceImpl implements AnswerService {
             if(answer.getQuestion().getMaxPoints() < Integer.parseInt(request.getPoints())) {
                 return new UniversalResponse("Liczba przyznanych punktów jest większa niż maksymalna liczba punktów za to pytanie", "ERROR");
             }
+            if(Integer.parseInt(request.getPoints()) < 0) {
+                return new UniversalResponse("Liczba przyznanych punktów jest mniejsza niż 0", "ERROR");
+            }
 
             answer.setPoints(Integer.parseInt(request.getPoints()));
             answer.setChecked(true);
