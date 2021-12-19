@@ -1,9 +1,13 @@
 package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.ExamService;
+import com.hubex.learningsystem.app.models.dtos.AnswerDTO;
 import com.hubex.learningsystem.app.models.dtos.ExamDTO;
+import com.hubex.learningsystem.app.models.entities.AnswerEntity;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.entities.ExamEntity;
+import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
+import com.hubex.learningsystem.app.models.repositories.AnswerRepository;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
 import com.hubex.learningsystem.app.models.repositories.ExamRepository;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
@@ -15,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +50,13 @@ public class ExamServiceImpl implements ExamService {
             throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
         } else {
             ExamEntity exam = modelMapper.map(request, ExamEntity.class);
+
+            if (LocalDateTime.now().isAfter(request.getStartDate())) {
+                throw new RuntimeException("Zła data");
+            }
+            if (request.getEndDate().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Zła data");
+            }
             exam.setStartDate(request.getStartDate());
             exam.setEndDate(request.getEndDate());
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
@@ -87,8 +99,24 @@ public class ExamServiceImpl implements ExamService {
         return new UniversalResponse("Z powodzeniem usunięto egzamin", "SUCCESS");
     }
 
+//    @Override
+//    public List<ExamDTO> getUncheckedExams(String courseId) {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentPrincipalName = authentication.getName();
+//
+//        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+//
+//        if (loggedUser == null) {
+//            throw new RuntimeException("Zaloguj się aby kontynuować");
+//        } else {
+//            List<ExamDTO> exams = examRepository.findAllByCourse_TeachersAndCourse_Id(loggedUser, Long.valueOf(courseId)).stream().map(exam -> modelMapper.map(exam, ExamDTO.class))
+//                    .collect(Collectors.toList());
+//            return exams;
+//        }
+//    }
+
     @Override
-    public List<ExamDTO> getUncheckedExams(String courseId) {
+    public List<ExamDTO> getUncheckedExams() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
@@ -97,9 +125,18 @@ public class ExamServiceImpl implements ExamService {
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
         } else {
-            List<ExamDTO> exams = examRepository.findAllByCourse_TeachersAndCourse_Id(loggedUser, Long.valueOf(courseId)).stream().map(exam -> modelMapper.map(exam, ExamDTO.class))
-                    .collect(Collectors.toList());
-            return exams;
+            List<ExamEntity> exams = examRepository.findAllByCourse_Teachers(loggedUser).stream()
+                    .filter(examEntity -> {
+                        List<SubmissionEntity> submissions = examEntity.getSubmissions().stream().filter(submissionEntity -> {
+                            if (submissionEntity.getAnswers().stream().anyMatch(answerEntity -> !answerEntity.isChecked()))
+                                return true;
+                            else
+                                return false;
+                        }).collect(Collectors.toList());
+                        return !submissions.isEmpty();
+                    }).collect(Collectors.toList());
+
+            return exams.stream().map(examEntity -> modelMapper.map(examEntity, ExamDTO.class)).collect(Collectors.toList());
         }
     }
 
@@ -122,4 +159,29 @@ public class ExamServiceImpl implements ExamService {
             return exams;
         }
     }
+
+//    @Override
+//    public List<ExamDTO> testFunc() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        String currentPrincipalName = authentication.getName();
+//
+//        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+//
+//        if (loggedUser == null) {
+//            throw new RuntimeException("Zaloguj się aby kontynuować");
+//        } else {
+//            List<ExamEntity> exams = examRepository.findAllByCourse_Teachers(loggedUser).stream()
+//                    .filter(examEntity -> {
+//                        List<SubmissionEntity> submissions = examEntity.getSubmissions().stream().filter(submissionEntity -> {
+//                            if (submissionEntity.getAnswers().stream().anyMatch(answerEntity -> !answerEntity.isChecked()))
+//                                return true;
+//                            else
+//                                return false;
+//                        }).collect(Collectors.toList());
+//                        return !submissions.isEmpty();
+//                    }).collect(Collectors.toList());
+//
+//            return exams.stream().map(examEntity -> modelMapper.map(examEntity, ExamDTO.class)).collect(Collectors.toList());
+//        }
+//    }
 }

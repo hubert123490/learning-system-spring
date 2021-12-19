@@ -103,6 +103,9 @@ public class SubmissionServiceImpl implements SubmissionService {
             if (submission == null && (LocalDateTime.now().isAfter(exam.getStartDate()) && LocalDateTime.now().isBefore(exam.getEndDate()))) {
                 return new CheckSubmissionResponse("Możesz podejść do egzaminu", "SUCCESS", exam.getStartDate(), exam.getEndDate());
             }
+            else if (submission == null && (LocalDateTime.now().isBefore(exam.getStartDate()) && exam.getEndDate().isAfter(LocalDateTime.now()))) {
+                return new CheckSubmissionResponse("Egzamin jeszcze się nie rozpoczął", "NOT_STARTED", exam.getStartDate(), exam.getEndDate());
+            }
             else if(LocalDateTime.now().isAfter(exam.getEndDate())) {
                 return new CheckSubmissionResponse("Egzamin zakończył się", "ENDED", exam.getStartDate(), exam.getEndDate());
             }
