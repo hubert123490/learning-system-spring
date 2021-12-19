@@ -3,6 +3,7 @@ package com.hubex.learningsystem.app.models.repositories;
 import com.hubex.learningsystem.app.models.entities.ExamEntity;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,4 +12,5 @@ import java.util.List;
 public interface ExamRepository extends JpaRepository<ExamEntity, Long> {
     List<ExamEntity> findAllByCourse_TeachersAndCourse_Id(UserEntity teacher, Long courseId);
     List<ExamEntity> findAllByCourse_Students(UserEntity student);
+    List<ExamEntity> findAllByCourse_Teachers(UserEntity teacher);
 }

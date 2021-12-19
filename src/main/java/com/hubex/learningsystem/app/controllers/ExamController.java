@@ -47,11 +47,11 @@ public class ExamController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{courseId}/exams")
+    @GetMapping("/unchecked-exams")
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
-    public List<ExamDTO> getUncheckedExams(@PathVariable String courseId) {
-        return examService.getUncheckedExams(courseId);
+    public List<ExamDTO> getUncheckedExams() {
+        return examService.getUncheckedExams();
     }
 
     @GetMapping("/pending-exams")
