@@ -34,6 +34,7 @@ public class AnswerEntity implements Serializable {
     @JoinColumn(name = "submission_id")
     private SubmissionEntity submission;
 
+    @Column(length = 65535)
     private String givenAnswer;
 
     private int points;

@@ -88,8 +88,7 @@ public class CourseController {
                 return ResponseEntity.ok(response);
             }
         } catch (Exception e) {
-            CourseDetails response = new CourseDetails();
-            response.setMessage(e.getMessage());
+            UniversalResponse response = new UniversalResponse(e.getMessage(), "PROTECTED");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
         return ResponseEntity.noContent().build();

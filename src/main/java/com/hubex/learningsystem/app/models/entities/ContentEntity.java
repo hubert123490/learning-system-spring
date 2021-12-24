@@ -28,7 +28,7 @@ public class ContentEntity implements Serializable {
 
     private String title;
 
-    @Lob
+    @Column(length = 65535)
     private String textArea = "";
 
     @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)

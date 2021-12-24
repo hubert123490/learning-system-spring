@@ -101,21 +101,21 @@ public class SubmissionServiceImpl implements SubmissionService {
 
             SubmissionEntity submission = submissionRepository.findByStudent_EmailAndExam(loggedUser.getEmail(), exam);
             if (submission == null && (LocalDateTime.now().isAfter(exam.getStartDate()) && LocalDateTime.now().isBefore(exam.getEndDate()))) {
-                return new CheckSubmissionResponse("Możesz podejść do egzaminu", "SUCCESS", exam.getStartDate(), exam.getEndDate());
+                return new CheckSubmissionResponse("Możesz podejść do egzaminu", "SUCCESS", exam.getStartDate(), exam.getEndDate(), null);
             }
             else if (submission == null && (LocalDateTime.now().isBefore(exam.getStartDate()) && exam.getEndDate().isAfter(LocalDateTime.now()))) {
-                return new CheckSubmissionResponse("Egzamin jeszcze się nie rozpoczął", "NOT_STARTED", exam.getStartDate(), exam.getEndDate());
+                return new CheckSubmissionResponse("Egzamin jeszcze się nie rozpoczął", "NOT_STARTED", exam.getStartDate(), exam.getEndDate(), null);
             }
             else if(LocalDateTime.now().isAfter(exam.getEndDate())) {
-                return new CheckSubmissionResponse("Egzamin zakończył się", "ENDED", exam.getStartDate(), exam.getEndDate());
+                return new CheckSubmissionResponse("Egzamin zakończył się", "ENDED", exam.getStartDate(), exam.getEndDate(), null);
             }
             else if(!submission.isClosed()){
-                return new CheckSubmissionResponse("Egzamin nadal trwa", "PENDING", exam.getStartDate(), exam.getEndDate());
+                return new CheckSubmissionResponse("Egzamin nadal trwa", "PENDING", exam.getStartDate(), exam.getEndDate(), submission.getId());
             }
             else if(submission.getAnswers().stream().anyMatch(answer -> !answer.isChecked())) {
-                return new CheckSubmissionResponse("Egzamin nadal wymaga sprawdzenia przez nauczyciela", "CHECKING", exam.getStartDate(), exam.getEndDate());
+                return new CheckSubmissionResponse("Egzamin nadal wymaga sprawdzenia przez nauczyciela", "CHECKING", exam.getStartDate(), exam.getEndDate(), null);
             }
-            return new CheckSubmissionResponse("Uzyskana liczba punktów: " + submission.getStudentScore() + " na " + submission.getMaxScore(), "ERROR", exam.getStartDate(), exam.getEndDate());
+            return new CheckSubmissionResponse("Uzyskana liczba punktów: " + submission.getStudentScore() + " na " + submission.getMaxScore(), "ERROR", exam.getStartDate(), exam.getEndDate(), null);
         }
     }
 

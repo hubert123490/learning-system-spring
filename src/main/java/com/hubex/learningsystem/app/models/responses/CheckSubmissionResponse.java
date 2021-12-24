@@ -14,4 +14,5 @@ public class CheckSubmissionResponse {
     private String status;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private Long submissionId;
 }

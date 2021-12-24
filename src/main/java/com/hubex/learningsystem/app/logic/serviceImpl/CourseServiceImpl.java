@@ -115,7 +115,7 @@ public class CourseServiceImpl implements CourseService {
         }
         if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId))) &&
                 loggedUser.getStudentCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
-            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+            throw new SecurityException("Wygląda na to że nie posiadasz dostępu do kursu");
 
         } else {
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
@@ -176,7 +176,6 @@ public class CourseServiceImpl implements CourseService {
                 course.getStudents().add(loggedUser);
             else
                 throw new RuntimeException("Nieprawidłowe hasło");
-
             try {
                 courseRepository.save(course);
             } catch (Exception e) {
