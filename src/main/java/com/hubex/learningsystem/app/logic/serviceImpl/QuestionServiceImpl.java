@@ -19,7 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -146,11 +146,23 @@ public class QuestionServiceImpl implements QuestionService {
             if (exam == null) {
                 throw new NullPointerException("Nie znaleziono egzaminu o podanym id!");
             }
+            if(request.getCorrectAnswer() == null || request.getCorrectAnswer().equals("")) {
+                throw new RuntimeException("Prawidłowa odpowiedź nie może być pusta");
+            }
             question.setCorrectAnswer(request.getCorrectAnswer());
+
+            LinkedList<QueryEntity> queries = new LinkedList<>(question.getQueries());
+
             for (String query :
                     request.getQueries()) {
-                QueryEntity queryEntity = new QueryEntity();
-                queryEntity.setQuestion(question);
+                QueryEntity queryEntity;
+                if(queries.size() > 0)
+                {
+                    queryEntity = queries.pop();
+                }else {
+                    queryEntity = new QueryEntity();
+                    queryEntity.setQuestion(question);
+                }
                 queryEntity.setText(query);
                 try{
                     queryRepository.save(queryEntity);
