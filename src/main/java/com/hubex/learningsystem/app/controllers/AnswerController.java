@@ -35,6 +35,13 @@ public class AnswerController {
         return answerService.getUncheckedAnswers(courseId, examId, submissionId);
     }
 
+    @GetMapping("/answers")
+    @ResponseBody
+    @PreAuthorize("hasRole('TEACHER')")
+    public List<AnswerDTO> getSubmissionAnswers(@PathVariable String courseId, @PathVariable String examId, @PathVariable String submissionId) {
+        return answerService.getSubmissionAnswers(courseId, examId, submissionId);
+    }
+
     @PostMapping("/answers/{answerId}")
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")

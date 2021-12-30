@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AnswerRepository extends JpaRepository<AnswerEntity, Long> {
     List<AnswerEntity> findAllByCheckedFalseAndSubmission_Id(Long submissionId);
+    List<AnswerEntity> findAllBySubmission_Id(Long submissionId);
 }

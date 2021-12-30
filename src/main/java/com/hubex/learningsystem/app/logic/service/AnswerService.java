@@ -11,4 +11,5 @@ public interface AnswerService {
     UniversalResponse submitAnswers(String courseId, String examId, String submissionId, SubmitAnswersRequest request);
     List<AnswerDTO> getUncheckedAnswers(String courseId, String examId, String submissionId);
     UniversalResponse rateAnswer(String courseId, String examId, String submissionId, String answerId, RateAnswerRequest request);
+    List<AnswerDTO> getSubmissionAnswers(String courseId, String examId, String submissionId);
 }

@@ -2,6 +2,7 @@ package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.AnswerService;
 import com.hubex.learningsystem.app.models.dtos.AnswerDTO;
+import com.hubex.learningsystem.app.models.dtos.QueryDTO;
 import com.hubex.learningsystem.app.models.entities.AnswerEntity;
 import com.hubex.learningsystem.app.models.entities.QuestionEntity;
 import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
@@ -181,6 +182,38 @@ public class AnswerServiceImpl implements AnswerService {
                 e.printStackTrace();
             }
             return new UniversalResponse("Oceniono odpowiedź", "SUCCESS");
+        }
+    }
+
+    @Override
+    public List<AnswerDTO> getSubmissionAnswers(String courseId, String examId, String submissionId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            SubmissionEntity submission = submissionRepository.findById(Long.valueOf(submissionId)).orElse(null);
+            if (submission == null) {
+                throw new NullPointerException("Nie znaleziono przystąpienia(zgłoszenia) do egzaminu o podanym id");
+            }
+            List<AnswerDTO> answers = answerRepository.findAllBySubmission_Id(submission.getId()).stream()
+                    .map(answer -> {
+                        AnswerDTO returnValue = modelMapper.map(answer, AnswerDTO.class);
+                        returnValue.setDescription(answer.getQuestion().getDescription());
+                        returnValue.setMaxPoints(answer.getQuestion().getMaxPoints());
+                        returnValue.setType(answer.getQuestion().getType());
+                        returnValue.setQueries(answer.getQuestion().getQueries().stream().map(query -> modelMapper.map(query, QueryDTO.class)).collect(Collectors.toList()));
+                        returnValue.setCorrectAnswer(answer.getQuestion().getCorrectAnswer());
+                        return returnValue;
+                    }).collect(Collectors.toList());
+
+            return answers;
         }
     }
 }
