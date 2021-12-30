@@ -1,7 +1,8 @@
 package com.hubex.learningsystem.filestorage.models.entities;
 
 import com.hubex.learningsystem.app.models.entities.ContentEntity;
-import com.hubex.learningsystem.app.models.entities.LessonEntity;
+import com.hubex.learningsystem.app.models.entities.TaskAnswerEntity;
+import com.hubex.learningsystem.app.models.entities.TaskEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,14 @@ public class DBFileEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name="content_id")
     private ContentEntity content;
+
+    @ManyToOne
+    @JoinColumn(name="task_id")
+    private TaskEntity task;
+
+    @ManyToOne
+    @JoinColumn(name="task_answer_id")
+    private TaskAnswerEntity taskAnswer;
 
     public DBFileEntity(String fileName, String fileType, byte[] data) {
         this.fileName = fileName;
