@@ -1,6 +1,5 @@
 package com.hubex.learningsystem.app.models.entities;
 
-import com.hubex.learningsystem.security.models.entities.UserEntity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -34,7 +32,7 @@ public class AnswerEntity implements Serializable {
     @JoinColumn(name = "submission_id")
     private SubmissionEntity submission;
 
-    @Column(length = 65535)
+    @Column(columnDefinition="TEXT")
     private String givenAnswer;
 
     private int points;
