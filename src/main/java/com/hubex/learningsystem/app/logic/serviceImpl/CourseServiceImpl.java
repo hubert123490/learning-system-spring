@@ -124,11 +124,14 @@ public class CourseServiceImpl implements CourseService {
             }
             List<LessonEntity> lessons = new ArrayList<>(course.getLessons());
             List<ExamEntity> exams = new ArrayList<>(course.getExams());
+            List<AssignmentEntity> assignments = new ArrayList<>(course.getAssignments());
             List<LessonDTO> lessonDTOS = lessons.stream().map(lesson -> modelMapper.map(lesson, LessonDTO.class)).collect(Collectors.toList());
             List<ExamDTO> examDTOS = exams.stream().map(exam -> modelMapper.map(exam, ExamDTO.class)).collect(Collectors.toList());
+            List<AssignmentDTO> assignmentDTOS = assignments.stream().map(assignment -> modelMapper.map(assignment, AssignmentDTO.class)).collect(Collectors.toList());
             CourseDetails courseDetails = new CourseDetails();
             courseDetails.setLessons(lessonDTOS);
             courseDetails.setExams(examDTOS);
+            courseDetails.setAssignments(assignmentDTOS);
             return courseDetails;
         }
     }

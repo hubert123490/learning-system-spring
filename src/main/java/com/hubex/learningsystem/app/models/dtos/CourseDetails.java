@@ -16,5 +16,6 @@ public class CourseDetails implements Serializable {
 
     private List<LessonDTO> lessons;
     private List<ExamDTO> exams;
+    private List<AssignmentDTO> assignments;
     private String message;
 }
