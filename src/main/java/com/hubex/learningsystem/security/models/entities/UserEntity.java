@@ -1,22 +1,16 @@
 package com.hubex.learningsystem.security.models.entities;
 
-import com.hubex.learningsystem.app.models.entities.AnswerEntity;
-import com.hubex.learningsystem.app.models.entities.CourseEntity;
-import com.hubex.learningsystem.app.models.entities.PersonEntity;
-import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
-import com.hubex.learningsystem.security.models.enums.Roles;
+import com.hubex.learningsystem.app.models.entities.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -60,6 +54,9 @@ public class UserEntity implements Serializable {
 
     @OneToMany(mappedBy = "student")
     Set<SubmissionEntity> submissions;
+
+    @OneToMany(mappedBy = "student")
+    Set<TaskSubmissionEntity> taskSubmissions;
 
 
     public UserEntity ( String email, String password) {
