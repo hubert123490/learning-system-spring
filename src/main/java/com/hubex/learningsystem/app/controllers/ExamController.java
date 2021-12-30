@@ -60,4 +60,11 @@ public class ExamController {
     public List<ExamDTO> getPendingExams() {
         return examService.getPendingExams();
     }
+
+    @GetMapping("/{courseId}/exams")
+    @ResponseBody
+    @PreAuthorize("hasRole('TEACHER')")
+    public List<ExamDTO> getCourseExams(@PathVariable String courseId) {
+        return examService.getCourseExams(courseId);
+    }
 }
