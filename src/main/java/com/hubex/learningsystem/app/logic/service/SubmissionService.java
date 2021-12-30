@@ -9,5 +9,6 @@ import java.util.List;
 public interface SubmissionService {
     UniversalResponse makeSubmission(String courseId, String examId);
     CheckSubmissionResponse checkSubmission(String courseId, String examId);
-    List<SubmissionDTO> findSubmissions(String courseId, String examId);
+    List<SubmissionDTO> findUncheckedSubmissions(String courseId, String examId);
+    List<SubmissionDTO> findAllSubmissions(String courseId, String examId);
 }

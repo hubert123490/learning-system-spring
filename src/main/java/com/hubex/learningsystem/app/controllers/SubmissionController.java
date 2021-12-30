@@ -37,6 +37,13 @@ public class SubmissionController {
     @ResponseBody
     @PreAuthorize("hasRole('TEACHER')")
     public List<SubmissionDTO> findSubmissions(@PathVariable String courseId, @PathVariable String examId) {
-        return submissionService.findSubmissions(courseId, examId);
+        return submissionService.findUncheckedSubmissions(courseId, examId);
+    }
+
+    @GetMapping("/find-all-submissions")
+    @ResponseBody
+    @PreAuthorize("hasRole('TEACHER')")
+    public List<SubmissionDTO> findAllSubmissions(@PathVariable String courseId, @PathVariable String examId) {
+        return submissionService.findAllSubmissions(courseId, examId);
     }
 }

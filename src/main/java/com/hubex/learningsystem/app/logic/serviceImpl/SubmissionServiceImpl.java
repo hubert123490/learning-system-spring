@@ -120,7 +120,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public List<SubmissionDTO> findSubmissions(String courseId, String examId) {
+    public List<SubmissionDTO> findUncheckedSubmissions(String courseId, String examId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
@@ -142,6 +142,38 @@ public class SubmissionServiceImpl implements SubmissionService {
                     .filter((item) -> item.getAnswers().stream()
                             .anyMatch(answer -> !answer.isChecked()))
                     .map(answer -> {
+                        SubmissionDTO returnValue = modelMapper.map(answer, SubmissionDTO.class);
+                        returnValue.setStudentFirstName(answer.getStudent().getPerson().getFirstName());
+                        returnValue.setStudentLastName(answer.getStudent().getPerson().getLastName());
+                        return returnValue;
+                    })
+                    .collect(Collectors.toList());
+
+
+            return submissions;
+        }
+    }
+
+    @Override
+    public List<SubmissionDTO> findAllSubmissions(String courseId, String examId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            System.out.println("error security");
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            ExamEntity exam = examRepository.findById(Long.valueOf(examId)).orElse(null);
+            if (exam == null) {
+                throw new NullPointerException("Nie znaleziono egzaminu o podanym id");
+            }
+
+            List<SubmissionDTO> submissions = exam.getSubmissions().stream().map(answer -> {
                         SubmissionDTO returnValue = modelMapper.map(answer, SubmissionDTO.class);
                         returnValue.setStudentFirstName(answer.getStudent().getPerson().getFirstName());
                         returnValue.setStudentLastName(answer.getStudent().getPerson().getLastName());
