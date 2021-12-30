@@ -3,11 +3,14 @@ package com.hubex.learningsystem.app.controllers;
 import com.hubex.learningsystem.app.models.entities.CourseEntity;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
 import com.hubex.learningsystem.app.models.requests.webex.CreateMeetingRequest;
+import com.hubex.learningsystem.app.models.requests.webex.DeleteMeetingRequest;
+import com.hubex.learningsystem.app.models.requests.webex.GetMeetingsRequest;
 import com.hubex.learningsystem.app.models.requests.webex.IntegrationRequest;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -42,6 +45,44 @@ public class WebexController {
         this.courseRepository = courseRepository;
     }
 
+    @PostMapping("/{courseId}/get-meetings")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> getMeetings(@RequestBody GetMeetingsRequest request, @PathVariable String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+
+            if(course == null) {
+                throw new NullPointerException("Nie znaleziono kursu o podanym id");
+            }
+
+            HttpGet get = new HttpGet("https://webexapis.com/v1/meetings");
+            get.addHeader("content-type", "application/json");
+            get.addHeader("Authorization", request.getToken());
+
+            String result = "";
+
+            try (CloseableHttpClient httpClient = HttpClients.createDefault();
+                 CloseableHttpResponse response = httpClient.execute(get)) {
+
+                result = EntityUtils.toString(response.getEntity());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return ResponseEntity.ok(result);
+    }
+}
+
     @PostMapping("/{courseId}/create-meeting")
     @PreAuthorize("hasRole('TEACHER')")
     public ResponseEntity<?> createMeeting(@RequestBody CreateMeetingRequest request, @PathVariable String courseId) {
@@ -62,9 +103,7 @@ public class WebexController {
                 throw new NullPointerException("Nie znaleziono kursu o podanym id");
             }
 
-            String hostEmail = loggedUser.getEmail();
             List<String> participantsEmails = course.getStudents().stream().map(UserEntity::getEmail).collect(Collectors.toList());
-            participantsEmails.add(hostEmail);
             String result = "";
 
             HttpPost post = new HttpPost("https://webexapis.com/v1/meetings");
@@ -73,12 +112,11 @@ public class WebexController {
 
             StringBuilder entity = new StringBuilder();
             entity.append("{");
-            entity.append("\"title\":" + "\"" + request.getTitle() + "\"" + ",");
+            entity.append("\"title\":" + "\"" + course.getName() + "\"" + ",");
             entity.append("\"start\":" + "\"" + request.getStart() + "\"" + ",");
             entity.append("\"end\":" + "\"" + request.getEnd() + "\"" + ",");
             entity.append("\"timezone\":" + "\"" + "Europe/Warsaw" + "\"" + ",");
             //entity.append("\"recurrence\":" + "\"" + "FREQ=WEEKLY" + "\"" + ",");
-            entity.append("\"hostEmail\":" + "\"" + hostEmail + "\"" + ",");
 
             entity.append("\"invitees\":");
             for(int i = 0; i < participantsEmails.size(); i ++){
@@ -106,8 +144,6 @@ public class WebexController {
                  CloseableHttpResponse response = httpClient.execute(post)) {
 
                 result = EntityUtils.toString(response.getEntity());
-            } catch (ClientProtocolException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -153,6 +189,48 @@ public class WebexController {
             e.printStackTrace();
         }
         return ResponseEntity.internalServerError().build();
+    }
+
+    @DeleteMapping("/{courseId}/cancel-meeting")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> cancelMeeting(@RequestBody DeleteMeetingRequest request, @PathVariable String courseId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
+
+            if (course == null) {
+                throw new NullPointerException("Nie znaleziono kursu o podanym id");
+            }
+
+            HttpDelete delete = new HttpDelete("https://webexapis.com/v1/meetings/" + request.getMeetingId());
+            delete.addHeader("content-type", "application/json");
+            delete.addHeader("Authorization", request.getToken());
+
+            int result = -1;
+
+            try (CloseableHttpClient httpClient = HttpClients.createDefault();
+                 CloseableHttpResponse response = httpClient.execute(delete)) {
+
+                result = response.getStatusLine().getStatusCode();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(result != -1)
+                return ResponseEntity.ok(result);
+            else {
+                return ResponseEntity.internalServerError().build();
+            }
+        }
     }
 
 }
