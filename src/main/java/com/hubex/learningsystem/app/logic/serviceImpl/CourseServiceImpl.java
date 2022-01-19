@@ -13,6 +13,7 @@ import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
 import com.hubex.learningsystem.security.models.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.expression.spel.ast.Assign;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -116,8 +117,8 @@ public class CourseServiceImpl implements CourseService {
         if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId))) &&
                 loggedUser.getStudentCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
             throw new SecurityException("Wygląda na to że nie posiadasz dostępu do kursu");
-
-        } else {
+        }
+        else {
             CourseEntity course = courseRepository.findById(Long.valueOf(courseId)).orElse(null);
             if (course == null) {
                 throw new NullPointerException("Nie znaleziono kursu o podanym id");
@@ -216,6 +217,7 @@ public class CourseServiceImpl implements CourseService {
                 studentDTO.setFirstName(student.getPerson().getFirstName());
                 studentDTO.setLastName(student.getPerson().getLastName());
 
+                //exams
                 List<ExamGradeDTO> exams = course.getExams().stream().map(examEntity -> {
                     List<SubmissionEntity> submissions = examEntity.getSubmissions().stream()
                             .filter(submissionEntity -> submissionEntity.getStudent() == student).collect(Collectors.toList());
@@ -234,12 +236,38 @@ public class CourseServiceImpl implements CourseService {
                     return returnValue;
                 }).collect(Collectors.toList());
                 studentDTO.setExams(exams);
-
-
-                studentDTO.setStudentPoints(student.getSubmissions().stream().filter(submissionEntity -> course.getExams().stream().anyMatch(examEntity -> examEntity == submissionEntity.getExam()))
+                studentDTO.setStudentExamPoints(student.getSubmissions().stream().filter(submissionEntity -> course.getExams()
+                        .stream().anyMatch(examEntity -> examEntity == submissionEntity.getExam()))
                         .mapToInt(SubmissionEntity::getStudentScore).sum());
-                studentDTO.setCoursePoints(course.getExams().stream().mapToInt(value -> value.getQuestions().stream().mapToInt(QuestionEntity::getMaxPoints).sum()).sum());
-                studentDTO.setGrade(convertGrade((double)studentDTO.getStudentPoints()/studentDTO.getCoursePoints()));
+                studentDTO.setCourseExamPoints(course.getExams().stream().mapToInt(value -> value.getQuestions().stream().mapToInt(QuestionEntity::getMaxPoints).sum()).sum());
+                studentDTO.setExamGrade(convertGrade((double)studentDTO.getStudentExamPoints()/studentDTO.getCourseExamPoints()));
+
+                //assignments
+                List<AssignmentGradeDTO> assignments = course.getAssignments().stream().map(assignmentEntity -> {
+                    List<TaskSubmissionEntity> submissions = assignmentEntity.getTaskSubmissions().stream()
+                            .filter(taskSubmissionEntity -> taskSubmissionEntity.getStudent() == student).collect(Collectors.toList());
+                    AssignmentGradeDTO returnValue = new AssignmentGradeDTO();
+                    returnValue.setAssignmentId(assignmentEntity.getId());
+                    returnValue.setAssignmentName(assignmentEntity.getName());
+                    returnValue.setMaxPoints(assignmentEntity.getTasks().stream().mapToInt(TaskEntity::getMaxPoints).sum());
+                    if(submissions.isEmpty()) {
+                        returnValue.setStudentPoints(0);
+                        returnValue.setStatus("NOT_SUBMITTED");
+                    }
+                    else {
+                        returnValue.setStudentPoints(submissions.stream().mapToInt(TaskSubmissionEntity::getStudentScore).sum());
+                        returnValue.setStatus("SUBMITTED");
+                    }
+                    return returnValue;
+                }).collect(Collectors.toList());
+                studentDTO.setAssignments(assignments);
+                studentDTO.setStudentAssignmentPoints(student.getTaskSubmissions().stream().filter(taskSubmissionEntity -> course.getAssignments()
+                .stream().anyMatch(assignmentEntity -> assignmentEntity == taskSubmissionEntity.getAssignment()))
+                .mapToInt(TaskSubmissionEntity::getStudentScore).sum());
+                studentDTO.setCourseAssignmentPoints(course.getAssignments().stream().mapToInt(value -> value.getTasks().stream().mapToInt(TaskEntity::getMaxPoints).sum()).sum());
+                studentDTO.setAssignmentGrade(convertGrade((double)studentDTO.getStudentAssignmentPoints()/studentDTO.getCourseAssignmentPoints()));
+
+
                 studentGrades.getStudentsGrades().add(studentDTO);
             }
             return studentGrades;

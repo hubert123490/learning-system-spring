@@ -16,8 +16,12 @@ public class CourseGradeDTO implements Serializable {
 
     private Long courseId;
     private String courseName;
-    private int studentPoints;
-    private int coursePoints;
-    private double grade;
+    private int studentExamPoints;
+    private int courseExamPoints;
+    private double examGrade;
+    private int studentAssignmentPoints;
+    private int courseAssignmentPoints;
+    private double assignmentGrade;
     private List<ExamGradeDTO> exams;
+    private List<AssignmentGradeDTO> assignments;
 }
