@@ -1,6 +1,7 @@
 package com.hubex.learningsystem.app.logic.service;
 
 import com.hubex.learningsystem.app.models.dtos.ExamDTO;
+import com.hubex.learningsystem.app.models.requests.ChangeDatesRequest;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 
@@ -12,5 +13,6 @@ public interface ExamService {
     List<ExamDTO> getUncheckedExams();
     List<ExamDTO> getPendingExams();
     List<ExamDTO> getCourseExams(String courseId);
+    UniversalResponse changeExamDates(String courseId, String examId, ChangeDatesRequest request);
     //List<ExamDTO> testFunc();
 }

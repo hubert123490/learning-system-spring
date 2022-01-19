@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 
 @Getter
@@ -19,4 +20,6 @@ public class ExamDTO implements Serializable {
     private String description;
     private Long courseId;
     private String courseName;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 }

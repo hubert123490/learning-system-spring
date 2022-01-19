@@ -2,6 +2,7 @@ package com.hubex.learningsystem.app.controllers;
 
 import com.hubex.learningsystem.app.logic.serviceImpl.ExamServiceImpl;
 import com.hubex.learningsystem.app.models.dtos.ExamDTO;
+import com.hubex.learningsystem.app.models.requests.ChangeDatesRequest;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +46,14 @@ public class ExamController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{courseId}/exams/{examId}")
+    @ResponseBody
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<?> changeExamDates(@PathVariable String courseId, @PathVariable String examId, @RequestBody @Valid ChangeDatesRequest request) {
+        UniversalResponse response = examService.changeExamDates(courseId, examId, request);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/unchecked-exams")

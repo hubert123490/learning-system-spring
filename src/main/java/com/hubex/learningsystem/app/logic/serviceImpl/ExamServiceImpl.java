@@ -7,6 +7,7 @@ import com.hubex.learningsystem.app.models.entities.ExamEntity;
 import com.hubex.learningsystem.app.models.entities.SubmissionEntity;
 import com.hubex.learningsystem.app.models.repositories.CourseRepository;
 import com.hubex.learningsystem.app.models.repositories.ExamRepository;
+import com.hubex.learningsystem.app.models.requests.ChangeDatesRequest;
 import com.hubex.learningsystem.app.models.requests.CreateExamRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.security.models.entities.UserEntity;
@@ -116,6 +117,44 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public UniversalResponse changeExamDates(String courseId, String examId, ChangeDatesRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        UserEntity loggedUser = userRepository.findByEmail(currentPrincipalName).orElse(null);
+
+        if (loggedUser == null) {
+            throw new RuntimeException("Zaloguj się aby kontynuować");
+        }
+        if (loggedUser.getTeacherCourses().stream().noneMatch(course -> course.getId().equals(Long.valueOf(courseId)))) {
+            throw new SecurityException("Wygląda na to że nie posiadasz kursu o podanym id");
+        } else {
+            ExamEntity exam = examRepository.findById(Long.valueOf(examId)).orElse(null);
+
+            if(exam == null) {
+                throw new RuntimeException("Nie znaleziono egzaminu o podanym id");
+            }
+
+            if (LocalDateTime.now().isAfter(request.getStartDate())) {
+                throw new RuntimeException("Zła data");
+            }
+            if (request.getEndDate().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("Zła data");
+            }
+            exam.setStartDate(request.getStartDate());
+            exam.setEndDate(request.getEndDate());
+
+            try {
+                examRepository.save(exam);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return new UniversalResponse("Z powodzeniem zmieniono datę rozpoczęcia i zakończenia", "SUCCESS", exam.getId());
+        }
+    }
+
+    @Override
     public List<ExamDTO> getUncheckedExams() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
@@ -146,15 +185,6 @@ public class ExamServiceImpl implements ExamService {
 
         if (loggedUser == null) {
             throw new RuntimeException("Zaloguj się aby kontynuować");
-//        } else {
-//            List<ExamDTO> exams = examRepository.findAllByCourse_Students(loggedUser).stream().map(exam -> {
-//                ExamDTO returnValue = modelMapper.map(exam, ExamDTO.class);
-//                returnValue.setCourseId(exam.getCourse().getId());
-//                return returnValue;
-//            })
-//                    .collect(Collectors.toList());
-//            return exams;
-//        }
         } else {
                 List<ExamDTO> exams = examRepository.findAllByCourse_Students(loggedUser).stream().filter(exam ->
                         LocalDateTime.now().isAfter(exam.getStartDate()) && LocalDateTime.now().isBefore(exam.getEndDate())
