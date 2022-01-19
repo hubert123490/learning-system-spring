@@ -3,12 +3,11 @@ package com.hubex.learningsystem.app.logic.serviceImpl;
 import com.hubex.learningsystem.app.logic.service.QuestionService;
 import com.hubex.learningsystem.app.models.dtos.QueryDTO;
 import com.hubex.learningsystem.app.models.dtos.QuestionDTO;
-import com.hubex.learningsystem.app.models.entities.ExamEntity;
-import com.hubex.learningsystem.app.models.entities.QueryEntity;
-import com.hubex.learningsystem.app.models.entities.QuestionEntity;
+import com.hubex.learningsystem.app.models.entities.*;
 import com.hubex.learningsystem.app.models.repositories.ExamRepository;
 import com.hubex.learningsystem.app.models.repositories.QueryRepository;
 import com.hubex.learningsystem.app.models.repositories.QuestionRepository;
+import com.hubex.learningsystem.app.models.repositories.SubmissionRepository;
 import com.hubex.learningsystem.app.models.requests.CreateQuestionRadioRequest;
 import com.hubex.learningsystem.app.models.requests.CreateQuestionRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
@@ -28,13 +27,15 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final ExamRepository examRepository;
     private final QueryRepository queryRepository;
+    private final SubmissionRepository submissionRepository;
     private final ModelMapper modelMapper = new ModelMapper();
 
-    public QuestionServiceImpl(UserRepository userRepository, QuestionRepository questionRepository, ExamRepository examRepository, QueryRepository queryRepository) {
+    public QuestionServiceImpl(UserRepository userRepository, QuestionRepository questionRepository, ExamRepository examRepository, QueryRepository queryRepository, SubmissionRepository submissionRepository) {
         this.userRepository = userRepository;
         this.questionRepository = questionRepository;
         this.examRepository = examRepository;
         this.queryRepository = queryRepository;
+        this.submissionRepository = submissionRepository;
     }
 
     @Override
@@ -113,6 +114,18 @@ public class QuestionServiceImpl implements QuestionService {
 
             if (question == null) {
                 throw new NullPointerException("Nie znaleziono pytania o podanym id!");
+            }
+
+            for (SubmissionEntity submission :
+                    question.getExam().getSubmissions()) {
+                submission.setMaxScore(submission.getMaxScore() - question.getMaxPoints());
+
+                try {
+                    submissionRepository.save(submission);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e.getMessage());
+                }
             }
 
             try {
