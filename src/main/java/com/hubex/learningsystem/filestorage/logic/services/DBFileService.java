@@ -8,4 +8,5 @@ public interface DBFileService {
     DBFileEntity storeFileContent(MultipartFile file, String contentId);
     DBFileEntity getFile(String fileId);
     DBFileEntity storeFileTask(MultipartFile file, String taskId);
+    DBFileEntity storeFileTaskAnswer(MultipartFile file, String taskAnswerId);
 }
