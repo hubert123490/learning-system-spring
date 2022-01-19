@@ -78,11 +78,10 @@ public class AnswerServiceImpl implements AnswerService {
                 if(question.getType().equals("radio") || question.getType().equals("text")){
                     if(question.getCorrectAnswer().equals(returnValue.getGivenAnswer())){
                         returnValue.setPoints(question.getMaxPoints());
-                        returnValue.setChecked(true);
                     }else {
                         returnValue.setPoints(0);
-                        returnValue.setChecked(false);
                     }
+                    returnValue.setChecked(true);
                 }
                 try {
                     answerRepository.save(returnValue);
