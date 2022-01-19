@@ -49,12 +49,12 @@ public class CourseEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<UserEntity> teachers = new HashSet<>();
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<LessonEntity> lessons = new HashSet<>();
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<ExamEntity> exams = new HashSet<>();
 
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<AssignmentEntity> assignments = new HashSet<>();
 }

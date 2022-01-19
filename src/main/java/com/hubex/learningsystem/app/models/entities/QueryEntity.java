@@ -22,9 +22,9 @@ public class QueryEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String text;
+
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="question_id")
     private QuestionEntity question;
-
-    private String text;
 }

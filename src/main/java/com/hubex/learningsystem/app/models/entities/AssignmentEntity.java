@@ -37,7 +37,7 @@ public class AssignmentEntity implements Serializable {
     @JoinColumn(name="course_id")
     private CourseEntity course;
 
-    @OneToMany(mappedBy = "assignment")
+    @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL)
     private Set<TaskEntity> tasks = new HashSet<>();
 
     @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL)

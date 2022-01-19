@@ -26,9 +26,9 @@ public class QuestionEntity implements Serializable {
 
     private String description;
 
-    private String correctAnswer;
-
     private String type;
+
+    private String correctAnswer;
 
     private int maxPoints;
 

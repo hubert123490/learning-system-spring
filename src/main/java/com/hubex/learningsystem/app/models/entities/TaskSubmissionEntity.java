@@ -44,4 +44,7 @@ public class TaskSubmissionEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "student_id")
     private UserEntity student;
+
+    @OneToMany(mappedBy = "taskSubmission", cascade = CascadeType.ALL)
+    private Set<TaskAnswerEntity> taskAnswers;
 }

@@ -22,6 +22,11 @@ public class AnswerEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition="TEXT")
+    private String givenAnswer;
+
+    private int points;
+
     private boolean checked = false;
 
     @ManyToOne
@@ -32,8 +37,4 @@ public class AnswerEntity implements Serializable {
     @JoinColumn(name = "submission_id")
     private SubmissionEntity submission;
 
-    @Column(columnDefinition="TEXT")
-    private String givenAnswer;
-
-    private int points;
 }

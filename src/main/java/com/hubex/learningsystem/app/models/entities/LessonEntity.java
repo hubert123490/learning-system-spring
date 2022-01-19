@@ -30,6 +30,6 @@ public class LessonEntity implements Serializable {
     @JoinColumn(name="course_id")
     private CourseEntity course;
 
-    @OneToMany(mappedBy = "lesson")
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL)
     private Set<ContentEntity> contents = new HashSet<>();
 }

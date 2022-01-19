@@ -25,6 +25,10 @@ public class TaskAnswerEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private int points;
+
+    private boolean checked = false;
+
     @ManyToOne
     @JoinColumn(name = "task_id")
     private TaskEntity task;
@@ -35,6 +39,4 @@ public class TaskAnswerEntity implements Serializable {
 
     @OneToMany(mappedBy = "taskAnswer", cascade = CascadeType.ALL)
     private Set<DBFileEntity> files = new HashSet<>();
-
-    private int points;
 }
