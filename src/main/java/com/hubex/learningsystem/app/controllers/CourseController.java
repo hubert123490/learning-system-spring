@@ -51,7 +51,7 @@ public class CourseController {
     }
 
     @GetMapping("/my-courses-teacher")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
+    @PreAuthorize("hasRole('TEACHER')")
     @ResponseBody
     public ResponseEntity<?> getMyCourses() {
         GetAllCoursesResponse response = courseService.getTeacherCourses();
@@ -64,7 +64,7 @@ public class CourseController {
     }
 
     @GetMapping("/my-courses-student")
-    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')")
+    @PreAuthorize("hasRole('STUDENT')")
     @ResponseBody
     public ResponseEntity<?> getMyCoursesStudent() {
         GetAllCoursesResponse response = courseService.getStudentCourses();
