@@ -18,8 +18,12 @@ public class StudentGradeDTO implements Serializable {
     private String firstName;
     private String lastName;
     private String email;
-    private int studentPoints;
-    private int coursePoints;
-    private double grade;
+    private int studentExamPoints;
+    private int courseExamPoints;
+    private double examGrade;
+    private int studentAssignmentPoints;
+    private int courseAssignmentPoints;
+    private double assignmentGrade;
     private List<ExamGradeDTO> exams;
+    private List<AssignmentGradeDTO> assignments;
 }
