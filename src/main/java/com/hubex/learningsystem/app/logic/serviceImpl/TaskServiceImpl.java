@@ -2,11 +2,10 @@ package com.hubex.learningsystem.app.logic.serviceImpl;
 
 import com.hubex.learningsystem.app.logic.service.TaskService;
 import com.hubex.learningsystem.app.models.dtos.TaskDTO;
-import com.hubex.learningsystem.app.models.entities.AssignmentEntity;
-import com.hubex.learningsystem.app.models.entities.ContentEntity;
-import com.hubex.learningsystem.app.models.entities.TaskEntity;
+import com.hubex.learningsystem.app.models.entities.*;
 import com.hubex.learningsystem.app.models.repositories.AssignmentRepository;
 import com.hubex.learningsystem.app.models.repositories.TaskRepository;
+import com.hubex.learningsystem.app.models.repositories.TaskSubmissionRepository;
 import com.hubex.learningsystem.app.models.requests.CreateTaskRequest;
 import com.hubex.learningsystem.app.models.responses.UniversalResponse;
 import com.hubex.learningsystem.filestorage.logic.servicesImpl.DBFileServiceImpl;
@@ -21,7 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,16 +32,18 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final DBFileServiceImpl dbFileService;
     private final DBFileRepository dbFileRepository;
+    private final TaskSubmissionRepository taskSubmissionRepository;
     private final ModelMapper modelMapper = new ModelMapper();
 
     private final String fileUrl = "http://localhost:8080/api/files";
 
-    public TaskServiceImpl(UserRepository userRepository, AssignmentRepository assignmentRepository, TaskRepository taskRepository, DBFileServiceImpl dbFileService, DBFileRepository dbFileRepository) {
+    public TaskServiceImpl(UserRepository userRepository, AssignmentRepository assignmentRepository, TaskRepository taskRepository, DBFileServiceImpl dbFileService, DBFileRepository dbFileRepository, TaskSubmissionRepository taskSubmissionRepository) {
         this.userRepository = userRepository;
         this.assignmentRepository = assignmentRepository;
         this.taskRepository = taskRepository;
         this.dbFileService = dbFileService;
         this.dbFileRepository = dbFileRepository;
+        this.taskSubmissionRepository = taskSubmissionRepository;
     }
 
     @Override
@@ -69,6 +72,19 @@ public class TaskServiceImpl implements TaskService {
                     return fileDTO;
                 }).collect(Collectors.toList()));
                 taskDTO.setDescription(task.getDescription());
+                TaskSubmissionEntity submissionEntity = taskSubmissionRepository.findAllByStudentAndAssignment(loggedUser, assignment).orElse(null);
+                Set<TaskAnswerEntity> answers = new HashSet<>();
+                if (submissionEntity != null)
+                    answers = submissionEntity.getTaskAnswers();
+
+                TaskAnswerEntity ans = answers.stream().filter(taskAnswerEntity -> taskAnswerEntity.getTask() == task).findFirst().orElse(null);
+                if (ans != null) {
+                    taskDTO.setSubmissionFiles(ans.getFiles().stream().map(file -> {
+                        FileDTO fileDTO = modelMapper.map(file, FileDTO.class);
+                        fileDTO.setDownloadUrl(fileUrl + "/" + file.getId());
+                        return fileDTO;
+                    }).collect(Collectors.toList()));
+                }
                 return taskDTO;
             }).collect(Collectors.toList());
             return returnValue;
@@ -93,8 +109,7 @@ public class TaskServiceImpl implements TaskService {
             if (assignment == null) {
                 throw new NullPointerException("Nie znaleziono pracy o podanym id!");
             }
-            if(request.getPoints() < 0 )
-            {
+            if (request.getPoints() < 0) {
                 throw new RuntimeException("Liczba punktów nie może być mniejsza od 0");
             }
             task.setAssignment(assignment);
@@ -106,6 +121,18 @@ public class TaskServiceImpl implements TaskService {
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
+
+            for (TaskSubmissionEntity submission :
+                    assignment.getTaskSubmissions()) {
+                submission.setMaxScore(submission.getMaxScore() + task.getMaxPoints());
+                try {
+                    taskSubmissionRepository.save(submission);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Nie udało się dodać punktów do przystąpień");
+                }
+            }
+
             return new UniversalResponse("Z powodzeniem utworzono zadanie", "SUCCESS");
         }
     }
@@ -127,6 +154,18 @@ public class TaskServiceImpl implements TaskService {
 
             if (task == null) {
                 throw new NullPointerException("Nie znaleziono zadania o podanym id!");
+            }
+
+            for (TaskSubmissionEntity submission :
+                    task.getAssignment().getTaskSubmissions()) {
+                submission.setMaxScore(submission.getMaxScore() - task.getMaxPoints());
+
+                try {
+                    taskSubmissionRepository.save(submission);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e.getMessage());
+                }
             }
 
             try {

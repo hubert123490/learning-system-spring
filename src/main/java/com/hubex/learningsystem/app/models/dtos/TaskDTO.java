@@ -20,4 +20,5 @@ public class TaskDTO implements Serializable {
     private String title;
     private String description;
     private List<FileDTO> files = new ArrayList<>();
+    private List<FileDTO> submissionFiles = new ArrayList<>();
 }
