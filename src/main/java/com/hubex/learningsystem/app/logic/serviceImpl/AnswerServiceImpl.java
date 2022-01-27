@@ -169,9 +169,10 @@ public class AnswerServiceImpl implements AnswerService {
                 return new UniversalResponse("Liczba przyznanych punktów jest mniejsza niż 0", "ERROR");
             }
 
+            int points = answer.getPoints();
             answer.setPoints(Integer.parseInt(request.getPoints()));
             answer.setChecked(true);
-            submission.setStudentScore(submission.getStudentScore() + answer.getPoints());
+            submission.setStudentScore(submission.getStudentScore() + answer.getPoints() - points);
             submission.setGrade((double)submission.getStudentScore() / submission.getMaxScore());
 
             try{
