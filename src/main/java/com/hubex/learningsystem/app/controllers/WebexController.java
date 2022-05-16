@@ -36,7 +36,7 @@ public class WebexController {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    private final String tokenSecret = "Bearer MzA0OGNhZmQtNTZjOC00NDU5LTliMzYtMTNmMjY5MDIzZTM1N2QxZWVhNGEtYmFk_P0A1_cf268832-04e7-4280-8df2-96e676257777";
+    private final String tokenSecret = "Bearer X";
     private final String clientId = "Cb469f9350d574789b2363b5e7b9553e56cd40283bb7d9234ec9f3c13b64b41dd";
     private final String clientSecret = "53a3fa784654365737bd00dd4add1bf7aff2a3046a2bce606de4910d3d34e06e";
 
